@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Michroma, Poppins, Gothic_A1 } from "next/font/google";
 import "./globals.css";
+import Header from "@/components/shared/header";
+import { Footer } from "@/components/shared/footer";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const poppins = Poppins({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-poppins",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const michroma = Michroma({
+  weight: "400",
   subsets: ["latin"],
+  variable: "--font-michroma",
+});
+
+const gothic_a1 = Gothic_A1({
+  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
+  subsets: ["latin"],
+  variable: "--font-gothic-a1",
 });
 
 export const metadata: Metadata = {
@@ -25,9 +35,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${poppins.variable} ${michroma.variable} ${gothic_a1.variable} flex min-h-screen flex-col antialiased`}
       >
-        {children}
+        <Header />
+        <main className="flex-1">{children}</main>
+        <Footer />
       </body>
     </html>
   );
