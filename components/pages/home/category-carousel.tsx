@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import type { ProductCategory } from "@/services/api/product-category.api";
@@ -17,7 +18,6 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
   const scrollRef = useRef<HTMLUListElement>(null);
   const [scrollIndex, setScrollIndex] = useState(0);
   const [canScrollNext, setCanScrollNext] = useState(true);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
 
   const maxIndex = Math.max(0, categories.length - VISIBLE_CARDS);
   const scrollToIndex = useCallback(
@@ -38,7 +38,6 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
     const scrollLeft = el.scrollLeft;
     const index = Math.round(scrollLeft / (CARD_WIDTH + CARD_GAP));
     setScrollIndex(Math.min(index, maxIndex));
-    setCanScrollPrev(scrollLeft > 10);
     setCanScrollNext(scrollLeft < el.scrollWidth - el.clientWidth - 10);
   }, [maxIndex]);
 
@@ -61,9 +60,10 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
     <div className="container">
       <div className="flex gap-6 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory px-1 scrollbar-hide md:gap-8">
         {categories.map((category) => (
-          <div
+          <Link
             key={category.id}
-            className="min-w-80 w-80 p-7 snap-center py-10 bg-muted rounded-3xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            href={`/products?category_id=${category.id}`}
+            className="min-w-80 w-80 p-7 snap-center py-10 bg-muted rounded-3xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer block"
           >
             <div className="relative aspect-square w-full overflow-hidden bg-muted">
               {category.image?.url ? (
@@ -86,7 +86,7 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
                 {category.name}
               </p>
             </div>
-          </div>
+          </Link>
         ))}
       </div>
 

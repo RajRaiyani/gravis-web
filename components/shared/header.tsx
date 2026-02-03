@@ -18,7 +18,6 @@ import { useGetCart } from "@/hooks/useCart";
 const navigationItems = [
   { href: "/products", label: "Products" },
   { href: "/about", label: "About Us" },
-  { href: "/services", label: "Services" },
   { href: "/contact", label: "Contact us" },
 ];
 
@@ -37,8 +36,7 @@ export default function Header() {
     <header
       className={cn(
         "sticky top-0 z-50 w-full",
-        "border-b border-border/60 bg-background/95 backdrop-blur-md",
-        "shadow-[0_1px_0_0_var(--color-border)]"
+        "shadow-sm bg-background/95 backdrop-blur-md"
       )}
     >
       <div className="mx-auto flex h-16 md:h-18 max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
