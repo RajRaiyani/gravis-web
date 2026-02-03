@@ -63,7 +63,7 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
         {categories.map((category) => (
           <div
             key={category.id}
-            className="min-w-80 p-7 snap-center py-10 bg-muted rounded-3xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
+            className="min-w-80 w-80 p-7 snap-center py-10 bg-muted rounded-3xl shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer"
           >
             <div className="relative aspect-square w-full overflow-hidden bg-muted">
               {category.image?.url ? (

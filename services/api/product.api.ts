@@ -18,6 +18,11 @@ export interface ProductCategoryRef {
   description: string;
 }
 
+export interface ProductTechnicalDetail {
+  label: string;
+  value: string;
+}
+
 export interface Product {
   id: string;
   category_id: string;
@@ -30,12 +35,29 @@ export interface Product {
   created_at: string;
   updated_at: string;
   points: string[];
+  technical_details?: ProductTechnicalDetail[];
   category: ProductCategoryRef;
   primary_image: ProductImageRef;
   images: ProductImage[];
 }
 
-export const listProducts = async (): Promise<Product[]> => {
-  const data = await serverHttpCall.get<Product[]>("/products");
+export const listProducts = async (query: object = {}): Promise<Product[]> => {
+  const data = await serverHttpCall({
+    url: "/products",
+    method: "GET",
+    params: query,
+  });
   return Array.isArray(data) ? data : [];
+};
+
+export const getProduct = async (id: string): Promise<Product | null> => {
+  try {
+    const data = await serverHttpCall({
+      url: `/products/${id}`,
+      method: "GET",
+    });
+    return data && typeof data === "object" && "id" in data ? (data as Product) : null;
+  } catch {
+    return null;
+  }
 };

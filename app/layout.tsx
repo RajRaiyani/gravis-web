@@ -3,6 +3,8 @@ import { Michroma, Poppins, Gothic_A1 } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/shared/header";
 import { Footer } from "@/components/shared/footer";
+import { FloatingContact } from "@/components/shared/floating-contact";
+import { Providers } from "@/components/providers";
 
 const poppins = Poppins({
   weight: "400",
@@ -37,9 +39,12 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${michroma.variable} ${gothic_a1.variable} flex min-h-screen flex-col antialiased`}
       >
-        <Header />
-        <main className="flex-1">{children}</main>
-        <Footer />
+        <Providers>
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <FloatingContact />
+        </Providers>
       </body>
     </html>
   );

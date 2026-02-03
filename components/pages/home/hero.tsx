@@ -24,7 +24,7 @@ const banner: Banner[] = [
 export default function Hero() {
   return (
     <section className="w-full py-7">
-      <div className="w-[95svw] mx-auto rounded-2xl bg-white overflow-hidden shadow-lg">
+      <div className="container mx-auto rounded-2xl bg-white overflow-hidden shadow-lg">
         <Carousel
           className="w-full h-[80svh]"
           opts={{

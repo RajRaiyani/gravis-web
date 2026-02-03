@@ -15,6 +15,9 @@ export interface ProductCategory {
 }
 
 export const listProductCategories = async (): Promise<ProductCategory[]> => {
-  const data = await serverHttpCall.get<ProductCategory[]>("/product-categories");
+  const data = await serverHttpCall({
+    url: "/product-categories",
+    method: "GET",
+  });
   return Array.isArray(data) ? data : [];
 };

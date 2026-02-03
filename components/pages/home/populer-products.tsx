@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { listProducts } from "@/services/api/product.api";
+import { ArrowRight } from "lucide-react";
 import type { Product } from "@/services/api/product.api";
 
 function getPrimaryImageUrl(product: Product): string | null {
@@ -18,7 +19,7 @@ function formatPrice(rupee: number): string {
 }
 
 export const PopularProducts = async () => {
-  const products = await listProducts();
+  const products = await listProducts({ limit: 8 });
 
   if (!products?.length) {
     return (
@@ -36,15 +37,24 @@ export const PopularProducts = async () => {
   }
 
   return (
-    <section className="px-4 bg-muted py-12 md:px-6 lg:px-8">
+    <section className="px-4 bg-muted/30 py-16 md:px-6 md:py-20 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="mb-8">
-          <h2 className="text-2xl font-semibold text-foreground md:text-4xl">
-            Popular products
-          </h2>
-          <p className="mt-2 text-muted-foreground">
-            Bestsellers and customer favorites
-          </p>
+        <header className="mb-10 flex flex-col items-center gap-4 text-center md:mb-12 md:flex-row md:justify-between md:text-left">
+          <div>
+            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl lg:text-4xl">
+              Popular Products
+            </h2>
+            <p className="mx-auto max-w-xl text-muted-foreground md:mx-0 md:text-lg">
+              Bestsellers and customer favorites
+            </p>
+          </div>
+          <Link
+            href="/products"
+            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+          >
+            View all products
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </header>
 
         <div className="grid grid-cols-4 gap-6 sm:grid-cols-2 lg:grid-cols-4">

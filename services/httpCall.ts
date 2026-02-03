@@ -13,6 +13,11 @@ axiosInstance.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    const guestId = localStorage.getItem("guest_id");
+    if (guestId) {
+      config.headers["x-guest-id"] = guestId;
+    }
     return config;
   },
   (error) => Promise.reject(error)
