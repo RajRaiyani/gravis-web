@@ -1,10 +1,9 @@
 import httpCall from "../httpCall";
-
-export const GUEST_ID_STORAGE_KEY = "guest_id";
+import Cookies from "js-cookie";
 
 
 export interface UpdateCartResponse {
-  guest_id?: string;
+  token?: string;
   product_id: string;
 }
 
@@ -50,9 +49,9 @@ export async function updateCartItem(
 
   if (
     typeof window !== "undefined" &&
-    response.guest_id
+    response.token
   ) {
-    localStorage.setItem(GUEST_ID_STORAGE_KEY, response.guest_id);
+    Cookies.set('token', response.token);
   }
   return response;
 }

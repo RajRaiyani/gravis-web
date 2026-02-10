@@ -1,6 +1,7 @@
 import axios from "axios";
 import { serverDetails } from "@/config/env";
 import { toast } from "react-hot-toast";
+import Cookies from "js-cookie";
 
 const axiosInstance = axios.create({
   baseURL: serverDetails.serverProxyURL,
@@ -9,15 +10,12 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     
-    const token = localStorage.getItem("token");
+    const token = Cookies.get("token");
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    const guestId = localStorage.getItem("guest_id");
-    if (guestId) {
-      config.headers["x-guest-id"] = guestId;
-    }
     return config;
   },
   (error) => Promise.reject(error)
@@ -36,8 +34,8 @@ axiosInstance.interceptors.response.use(
         `${window.location.pathname}${window.location.search}${window.location.hash}`
       );
       location.href = `/login?redirect_url=${redirectUrl}`;
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      Cookies.remove("token");
+      Cookies.remove("user");
     }
 
     if (error.response.status === 403) {
@@ -52,7 +50,7 @@ axiosInstance.interceptors.response.use(
       toast.error("Internal server error");
     }
 
-    return Promise.reject(error);
+    return Promise.reject(error.response.data);
   }
 );
 

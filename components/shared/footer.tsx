@@ -24,18 +24,18 @@ export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-border bg-muted/30">
-      <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 md:py-16 lg:px-8">
+    <footer className="bg-[#0a1628] text-neutral-100">
+      <div className="mx-auto max-w-7xl px-4 py-14 md:px-6 md:py-16 lg:px-8">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-5 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-2">
             <Link
               href="/"
-              className="font-michroma text-2xl font-semibold tracking-tight text-primary hover:text-primary md:text-4xl"
+              className="font-michroma text-2xl font-semibold tracking-tight text-white transition-colors hover:text-primary md:text-4xl"
             >
               Gravis
             </Link>
-            <p className="mt-4 max-w-sm text-sm text-muted-foreground">
+            <p className="mt-4 max-w-sm text-sm text-blue-200/80">
               Built for what you build next. Discover products and categories
               that fit your workflow.
             </p>
@@ -43,7 +43,7 @@ export function Footer() {
 
           {/* Quick links */}
           <div>
-            <h3 className="font-michroma text-sm font-semibold uppercase tracking-wider text-foreground">
+            <h3 className="font-michroma text-sm font-semibold uppercase tracking-wider text-white">
               Quick links
             </h3>
             <ul className="mt-4 space-y-3">
@@ -51,7 +51,7 @@ export function Footer() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="text-sm text-blue-200/80 transition-colors hover:text-white"
                   >
                     {label}
                   </Link>
@@ -62,7 +62,7 @@ export function Footer() {
 
           {/* Support */}
           <div>
-            <h3 className="font-michroma text-sm font-semibold uppercase tracking-wider text-foreground">
+            <h3 className="font-michroma text-sm font-semibold uppercase tracking-wider text-white">
               Support
             </h3>
             <ul className="mt-4 space-y-3">
@@ -70,7 +70,7 @@ export function Footer() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="text-sm text-blue-200/80 transition-colors hover:text-white"
                   >
                     {label}
                   </Link>
@@ -81,7 +81,7 @@ export function Footer() {
 
           {/* Company */}
           <div>
-            <h3 className="font-michroma text-sm font-semibold uppercase tracking-wider text-foreground">
+            <h3 className="font-michroma text-sm font-semibold uppercase tracking-wider text-white">
               Company
             </h3>
             <ul className="mt-4 space-y-3">
@@ -89,7 +89,7 @@ export function Footer() {
                 <li key={href}>
                   <Link
                     href={href}
-                    className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                    className="text-sm text-blue-200/80 transition-colors hover:text-white"
                   >
                     {label}
                   </Link>
@@ -100,8 +100,8 @@ export function Footer() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 md:flex-row md:pt-10">
-          <p className="text-sm text-muted-foreground">
+        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-blue-900/60 pt-8 md:flex-row md:pt-10">
+          <p className="text-sm text-blue-300/70">
             © {currentYear} Gravis. All rights reserved.
           </p>
         </div>
