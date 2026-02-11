@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useState, useContext, type ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useContext,
+  type ReactNode,
+  useEffect,
+} from "react";
 
 import type { AuthUser } from "@/types/user.type";
 import Cookies from "js-cookie";
@@ -9,18 +15,35 @@ export interface AuthContextType {
   authUser: AuthUser | null;
   token: string | null;
   isLoggedIn: boolean;
+  isHydrated: boolean;
   login: (AuthUser: AuthUser, token: string, expiresAt: string) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
-const defaultAuthUser = JSON.parse(Cookies.get("user") || "null");
-const defaultAccessToken = Cookies.get("token") || null;
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [authUser, setAuthUser] = useState<AuthUser | null>(defaultAuthUser);
-  const [token, setToken] = useState<string | null>(defaultAccessToken);
+  const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  useEffect(() => {
+    try {
+      const storedUser = Cookies.get("user");
+      const storedToken = Cookies.get("token");
+
+      if (storedUser) {
+        setAuthUser(JSON.parse(storedUser) as AuthUser);
+      }
+      if (storedToken) {
+        setToken(storedToken);
+      }
+    } catch {
+      // Ignore malformed cookies
+    } finally {
+      setIsHydrated(true);
+    }
+  }, []);
 
   const isLoggedIn = authUser !== null;
 
@@ -44,6 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     authUser,
     token,
     isLoggedIn,
+    isHydrated,
     login,
     logout,
   };

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "react-hot-toast";
+import { submitContactInquiry } from "@/services/api/inquiry.api";
 
 const defaultValues = {
   name: "",
   email: "",
-  phone: "",
-  subject: "",
+  phone_number: "",
   message: "",
 };
 
@@ -17,9 +17,7 @@ export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
@@ -28,12 +26,16 @@ export function ContactForm() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Replace with your API call when backend is ready
-      await new Promise((r) => setTimeout(r, 600));
+      await submitContactInquiry({
+        name: form.name,
+        email: form.email,
+        phone_number: form.phone_number,
+        message: form.message,
+      });
       toast.success("Message sent! We'll get back to you soon.");
       setForm(defaultValues);
-    } catch {
-      toast.error("Something went wrong. Please try again.");
+    } catch (error: any) {
+      toast.error(error?.message || "Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -85,48 +87,23 @@ export function ContactForm() {
         </div>
       </div>
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <div className="space-y-2">
-          <label
-            htmlFor="contact-phone"
-            className="text-sm font-medium text-foreground"
-          >
-            Phone
-          </label>
-          <input
-            id="contact-phone"
-            name="phone"
-            type="tel"
-            value={form.phone}
-            onChange={handleChange}
-            className={inputClass}
-            placeholder="+91 98765 43210"
-            autoComplete="tel"
-          />
-        </div>
-        <div className="space-y-2">
-          <label
-            htmlFor="contact-subject"
-            className="text-sm font-medium text-foreground"
-          >
-            Subject <span className="text-destructive">*</span>
-          </label>
-          <select
-            id="contact-subject"
-            name="subject"
-            required
-            value={form.subject}
-            onChange={handleChange}
-            className={inputClass}
-          >
-            <option value="">Select subject</option>
-            <option value="general">General enquiry</option>
-            <option value="sales">Sales</option>
-            <option value="support">Support</option>
-            <option value="partnership">Partnership</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+      <div className="space-y-2">
+        <label
+          htmlFor="contact-phone"
+          className="text-sm font-medium text-foreground"
+        >
+          Phone
+        </label>
+        <input
+          id="contact-phone"
+          name="phone_number"
+          type="tel"
+          value={form.phone_number}
+          onChange={handleChange}
+          className={inputClass}
+          placeholder="+91 98765 43210"
+          autoComplete="tel"
+        />
       </div>
 
       <div className="space-y-2">

@@ -39,6 +39,8 @@ export interface Product {
   category: ProductCategoryRef;
   primary_image: ProductImageRef;
   images: ProductImage[];
+  has_pending_inquiry?: boolean;
+  pending_inquiry_id?: string | null;
 }
 
 export const listProducts = async (query: object = {}): Promise<Product[]> => {
@@ -56,7 +58,9 @@ export const getProduct = async (id: string): Promise<Product | null> => {
       url: `/products/${id}`,
       method: "GET",
     });
-    return data && typeof data === "object" && "id" in data ? (data as Product) : null;
+    return data && typeof data === "object" && "id" in data
+      ? ((data as unknown) as Product)
+      : null;
   } catch {
     return null;
   }
