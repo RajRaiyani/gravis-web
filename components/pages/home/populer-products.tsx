@@ -1,13 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
-import { listProducts } from "@/services/api/product.api";
-import { ArrowRight } from "lucide-react";
-import type { Product } from "@/services/api/product.api";
+import Image from "next/image";
+import { listProducts, type Product } from "@/services/api/product.api";
 
 function getPrimaryImageUrl(product: Product): string | null {
-  const primary = product.images?.find((i) => i.is_primary)?.image;
-  const first = product.images?.[0]?.image;
-  return primary?.url ?? first?.url ?? null;
+  return (
+    product.primary_image?.url ??
+    product.images?.find((i) => i.is_primary)?.image?.url ??
+    product.images?.[0]?.image?.url ??
+    null
+  );
 }
 
 function formatPrice(rupee: number): string {
@@ -23,13 +24,13 @@ export const PopularProducts = async () => {
 
   if (!products?.length) {
     return (
-      <section className="px-4 py-12 md:px-6 lg:px-8">
-        <div className="mx-auto max-w-6xl text-center">
-          <h2 className="font-michroma text-2xl font-semibold tracking-tight text-foreground md:text-3xl">
-            Popular products
+      <section className="px-4 py-10 md:px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl rounded-2xl bg-white px-5 py-8 text-center shadow-sm md:px-8">
+          <h2 className="mb-2 text-lg font-extrabold uppercase tracking-wide text-slate-800 md:text-xl">
+            Special deals on best sellers
           </h2>
-          <p className="mt-3 text-muted-foreground">
-            No products yet. Check back soon.
+          <p className="text-sm text-slate-500">
+            No products yet. Please check back soon.
           </p>
         </div>
       </section>
@@ -37,70 +38,100 @@ export const PopularProducts = async () => {
   }
 
   return (
-    <section className="px-4 bg-muted/30 py-16 md:px-6 md:py-20 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <header className="mb-10 flex flex-col items-center gap-4 text-center md:mb-12 md:flex-row md:justify-between md:text-left">
+    <section className="px-4 py-10 md:px-6 lg:px-8 bg-muted">
+      <div className="mx-auto container">
+        <div className="mb-6 flex items-start justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl lg:text-4xl">
-              Popular Products
+            <h2 className="flex items-center gap-2 text-lg font-extrabold uppercase tracking-wide text-slate-800 md:text-xl">
+              <span className="h-6 w-1 rounded-full bg-[#0046B7]" />
+              Special deals on best sellers
             </h2>
-            <p className="mx-auto max-w-xl text-muted-foreground md:mx-0 md:text-lg">
-              Bestsellers and customer favorites
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-500">
+              Lorem Ipsum Is Simply Dummy Text Of The Printing And Typesetting
+              Industry.
             </p>
           </div>
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+            className="hidden text-sm font-medium text-[#0046B7] hover:underline md:inline-flex"
           >
-            View all products
-            <ArrowRight className="h-4 w-4" />
+            View all
           </Link>
-        </header>
+        </div>
 
-        <div className="grid grid-cols-4 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((product) => {
             const imageUrl = getPrimaryImageUrl(product);
+            const displayPrice = formatPrice(product.sale_price_in_rupee);
+            const mrpPrice = formatPrice(
+              Math.round(product.sale_price_in_rupee * 1.5),
+            );
+
             return (
               <Link
                 key={product.id}
                 href={`/products/${product.id}`}
-                className="group shadow-md space-y-4 bg-white p-7 flex h-full flex-col overflow-hidden rounded-xl border border-border/60 transition-colors hover:border-primary/20"
+                className="group block rounded-[24px] border border-slate-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#0046B7] hover:shadow-md"
               >
-                <div className="px-2">
-                  {imageUrl && (
-                    <Image
-                      src={imageUrl}
-                      alt={product.name}
-                      width={300}
-                      height={300}
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      className="object-cover relative"
-                      unoptimized={imageUrl.startsWith("http://")}
-                    />
-                  )}
-                </div>
+                <div className="flex h-full flex-col px-4 pt-4 pb-5">
+                  <div className="relative rounded-2xl bg-slate-50 px-4 pt-3 pb-4">
+                    <span className="absolute left-4 top-3 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white">
+                      Best Seller
+                    </span>
+                    <div className="mt-6 flex items-center justify-center">
+                      {imageUrl ? (
+                        <Image
+                          src={imageUrl}
+                          alt={product.name}
+                          width={220}
+                          height={160}
+                          className="h-40 w-auto object-contain"
+                          unoptimized={imageUrl.startsWith("http://")}
+                        />
+                      ) : (
+                        <div className="flex h-40 w-full items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+                          <span className="text-2xl font-semibold">?</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="absolute bottom-3 right-4 rounded-full bg-[#FFD95A] px-3 py-1 text-[10px] font-bold uppercase text-slate-900">
+                      2 Year Warranty
+                    </span>
+                  </div>
 
-                <div className="flex flex-1 flex-col">
-                  <p className="line-clamp-2 text-lg font-bold text-foreground group-hover:text-primary">
-                    {product.name}
-                  </p>
-                  {product.points?.length > 0 && (
-                    <ul className="mt-3 line-clamp-4 space-y-1.5 border-t border-border/60 pt-3">
-                      {product.points.slice(0, 4).map((point, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-2 text-sm text-muted-foreground"
-                        >
-                          <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary" />
-                          <span className="line-clamp-2">{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                  <div className="mt-4 space-y-2">
+                    <p className="line-clamp-2 text-sm font-semibold text-slate-800 group-hover:text-[#0046B7]">
+                      {product.name}
+                    </p>
+
+                    {product.points?.length > 0 && (
+                      <ul className="mt-1 space-y-1">
+                        {product.points.slice(0, 3).map((point, index) => (
+                          <li
+                            // eslint-disable-next-line react/no-array-index-key
+                            key={index}
+                            className="flex items-start gap-1.5 text-[11px] text-slate-500"
+                          >
+                            <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
+                            <span className="line-clamp-2">{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-lg font-extrabold text-slate-900">
+                        {displayPrice}
+                      </span>
+                      <span className="text-xs text-slate-400 line-through">
+                        {mrpPrice}
+                      </span>
+                      <span className="rounded-full bg-[#FFE5E5] px-2 py-0.5 text-[10px] font-semibold uppercase text-[#FF4B4B]">
+                        57% Off
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <p className="text-xl font-extrabold">
-                  {formatPrice(product.sale_price_in_rupee)}
-                </p>
               </Link>
             );
           })}

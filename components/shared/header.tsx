@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, User, X, ShoppingCart, LogOut } from "lucide-react";
@@ -26,11 +27,20 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useGetCart } from "@/hooks/useCart";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import { useListProductCategories } from "@/hooks/product-category.hook";
 
 const navigationItems = [
-  { href: "/products", label: "Products" },
-  { href: "/about", label: "About Us" },
-  { href: "/contact", label: "Contact us" },
+  { href: "/", label: "Home" },
+  { href: "/about", label: "About us" },
+  { href: "/products", label: "Product", hasDropdown: true },
+  { href: "/opportunity", label: "Opportunity", hasDropdown: true },
 ];
 
 export default function Header() {
@@ -47,7 +57,9 @@ export default function Header() {
     const last = authUser.last_name ?? "";
     const firstInitial = first ? first[0].toUpperCase() : "";
     const lastInitial = last ? last[0].toUpperCase() : "";
-    return (firstInitial + lastInitial) || (authUser.email?.[0] ?? "").toUpperCase();
+    return (
+      firstInitial + lastInitial || (authUser.email?.[0] ?? "").toUpperCase()
+    );
   }, [authUser]);
 
   function handleLogout() {
@@ -68,85 +80,114 @@ export default function Header() {
     <header
       className={cn(
         "sticky top-0 z-50 w-full",
-        "shadow-sm bg-background/95 backdrop-blur-md"
+        "bg-white/95 backdrop-blur-md shadow-sm",
       )}
     >
-      <div className="mx-auto flex h-16 md:h-18 max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="font-michroma text-xl font-bold tracking-tight text-primary transition-opacity hover:opacity-90 md:text-2xl shrink-0"
-          onClick={() => setMobileMenuOpen(false)}
-        >
-          Gravis
-        </Link>
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4 md:px-6">
+        {/* Left: Logo + tagline */}
+        <div className="flex items-center gap-3 shrink-0">
+          <Link
+            href="/"
+            className="flex flex-col leading-none"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <span className="font-michroma text-xl font-bold tracking-tight text-[#121212] md:text-2xl">
+              GRAVIS
+            </span>
+            <span className="mt-1 text-[11px] font-medium tracking-[0.12em] text-[#3B3B3B] uppercase">
+              India
+            </span>
+          </Link>
+          <span className="hidden border-l border-slate-200 pl-3 text-xs font-medium text-[#0046B7] md:inline">
+            &quot; Powering Your World, Reliably &quot;
+          </span>
+        </div>
 
-        {/* Desktop nav (align right) */}
+        {/* Center: Desktop nav */}
         <nav
-          className="hidden md:flex flex-1 items-center justify-end gap-1"
+          className="hidden flex-1 items-center justify-center gap-4 text-sm font-medium text-slate-700 md:flex"
           aria-label="Main navigation"
         >
-          {navigationItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "relative px-4 py-2 text-sm font-medium transition-colors rounded-lg",
-                  active
-                    ? "text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                )}
-              >
-                {item.label}
-                {active && (
-                  <span
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 rounded-full bg-primary"
-                    aria-hidden
-                  />
-                )}
-              </Link>
-            );
-          })}
+          <Link
+            href="/"
+            className={cn(
+              "inline-flex items-center gap-1.5 px-1 py-1 transition-colors",
+              isActive("/")
+                ? "text-[#0046B7]"
+                : "text-slate-600 hover:text-[#0046B7]",
+            )}
+          >
+            Home
+          </Link>
+          <span className="text-slate-300" aria-hidden>
+            |
+          </span>
+          <Link
+            href="/about"
+            className={cn(
+              "inline-flex items-center gap-1.5 px-1 py-1 transition-colors",
+              isActive("/about")
+                ? "text-[#0046B7]"
+                : "text-slate-600 hover:text-[#0046B7]",
+            )}
+          >
+            About us
+          </Link>
+          <span className="text-slate-300" aria-hidden>
+            |
+          </span>
+          <ProductCategoriesMenu active={isActive("/products")} />
+          <span className="text-slate-300" aria-hidden>
+            |
+          </span>
+          <Link
+            href="/opportunity"
+            className={cn(
+              "inline-flex items-center gap-1.5 px-1 py-1 transition-colors",
+              isActive("/opportunity")
+                ? "text-[#0046B7]"
+                : "text-slate-600 hover:text-[#0046B7]",
+            )}
+          >
+            Opportunity
+          </Link>
         </nav>
 
-        {/* Right: Cart + Auth capsule */}
-        <div className="flex gap-2 items-center shrink-0 rounded-full bg-muted/70 px-2 py-1 shadow-sm border border-border/50 md:px-2 md:py-1.5">
+        {/* Right: Auth + Cart + primary CTA */}
+        <div className="flex items-center gap-3 md:gap-6">
+          {/* Cart */}
           <Link
             href="/cart"
             aria-label={`Shopping cart${
               cartItemCount > 0 ? `, ${cartItemCount} items` : ""
             }`}
-            className="relative p-1.5 rounded-full text-foreground hover:bg-background/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="relative hover:text-primary"
           >
-            <ShoppingCart className="size-5" />
+            <ShoppingCart className="size-6" />
             {cartItemCount > 0 && (
               <span
-                className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground"
+                className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#0046B7] text-[10px] font-semibold text-white"
                 aria-hidden
               >
                 {cartItemCount > 99 ? "99+" : cartItemCount}
               </span>
             )}
           </Link>
-          <span className="w-px h-5 bg-border/60 shrink-0" aria-hidden />
+
+          {/* Account / Auth */}
           {isLoggedIn && authUser ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex items-center gap-2 rounded-full px-2 py-1 text-sm font-medium text-foreground hover:bg-background/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-[#0046B7] hover:text-[#0046B7]"
                   aria-label="Account menu"
                 >
                   <Avatar size="sm">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {userInitials || <User className="size-3.5" />}
+                    <AvatarFallback className="bg-[#0046B7] text-primary-foreground">
+                      {userInitials || <User className="h-4 w-4" />}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:inline max-w-[120px] truncate">
-                    {authUser.full_name || authUser.email}
-                  </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="min-w-[200px]">
@@ -177,41 +218,45 @@ export default function Header() {
                   variant="destructive"
                   className="cursor-pointer"
                 >
-                  <LogOut className="size-4" />
+                  <LogOut className="mr-2 h-4 w-4" />
                   <span>Logout</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <>
+            <div className="flex items-center gap-2">
               <Link
                 href="/login"
-                className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-background/80 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="hidden text-sm font-medium text-slate-700 transition-colors hover:text-[#0046B7] md:inline-block"
               >
                 Login
               </Link>
               <Link
                 href="/register"
-                className="inline-flex items-center px-4 py-1.5 text-sm font-medium text-primary-foreground bg-primary rounded-full hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-muted/70"
+                className="rounded-full border border-[#0046B7] px-3 py-1.5 text-xs font-semibold text-[#0046B7] transition-colors hover:bg-[#0046B7] hover:text-white md:text-sm"
               >
                 Register
               </Link>
-            </>
+            </div>
           )}
 
-          {/* Mobile menu trigger (inside capsule on small screens) */}
-          <span
-            className="md:hidden w-px h-5 bg-border/60 shrink-0"
-            aria-hidden
-          />
+          {/* Primary CTA */}
+          <Link
+            href="/contact"
+            className="hidden rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 md:inline-flex md:items-center"
+          >
+            Contact Us
+          </Link>
+
+          {/* Mobile menu trigger */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <button
                 type="button"
                 aria-label="Open menu"
-                className="md:hidden p-2 rounded-full text-foreground hover:bg-background/80 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-colors hover:border-[#0046B7] hover:text-[#0046B7] md:hidden"
               >
-                <Menu className="size-5" />
+                <Menu className="h-4 w-4" />
               </button>
             </SheetTrigger>
             <SheetContent
@@ -250,7 +295,7 @@ export default function Header() {
                           "flex items-center px-4 py-3 rounded-lg text-base font-medium transition-colors",
                           active
                             ? "bg-primary/10 text-primary"
-                            : "text-foreground hover:bg-muted"
+                            : "text-foreground hover:bg-muted",
                         )}
                       >
                         {item.label}
@@ -338,5 +383,69 @@ export default function Header() {
         </div>
       </div>
     </header>
+  );
+}
+
+function ProductCategoriesMenu({ active }: { active: boolean }) {
+  const { data: categories } = useListProductCategories();
+  const router = useRouter();
+
+  return (
+    <NavigationMenu viewport={false} className="flex-none">
+      <NavigationMenuList className="gap-1">
+        <NavigationMenuItem>
+          <NavigationMenuTrigger
+            className={cn(
+              "rounded-none border-none bg-transparent px-1 py-1 text-sm font-medium shadow-none hover:bg-transparent focus:bg-transparent focus:outline-none data-[state=open]:bg-transparent",
+              active ? "text-[#0046B7]" : "text-slate-600 hover:text-[#0046B7]",
+            )}
+            onClick={(event) => {
+              event.preventDefault();
+              router.push("/products");
+            }}
+          >
+            Product
+          </NavigationMenuTrigger>
+          <NavigationMenuContent className="mt-4 left-1/2 -translate-x-1/2  rounded-2xl border border-slate-200 bg-white shadow-xl">
+            <div className="grid scrollbar-hide gap-4 p-5 grid-cols-3 min-w-[70svw] max-h-[50svh] overflow-y-auto">
+              {(categories ?? []).map((category) => (
+                <Link
+                  key={category.id}
+                  href={`/products?category_id=${category.id}`}
+                  className="flex items-center gap-3 rounded-xl border border-transparent px-3 py-3 text-left transition-colors hover:border-[#0046B7] hover:bg-slate-50"
+                >
+                  <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                    {category.image?.url ? (
+                      <Image
+                        src={category.image.url}
+                        alt={category.name}
+                        fill
+                        sizes="48px"
+                        className="object-cover"
+                        unoptimized={category.image.url.startsWith("http://")}
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs text-slate-400">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-sm font-semibold text-slate-800">
+                      {category.name}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+              {!categories?.length && (
+                <div className="flex items-center justify-center py-4 text-xs text-slate-500">
+                  Loading categories...
+                </div>
+              )}
+            </div>
+          </NavigationMenuContent>
+        </NavigationMenuItem>
+      </NavigationMenuList>
+    </NavigationMenu>
   );
 }

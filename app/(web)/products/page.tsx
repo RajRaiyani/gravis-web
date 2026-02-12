@@ -29,7 +29,7 @@ function formatPrice(rupee: number): string {
 }
 
 function normalizeSearchParams(
-  searchParams: Record<string, string | string[] | undefined>
+  searchParams: Record<string, string | string[] | undefined>,
 ): Record<string, string> {
   const out: Record<string, string> = {};
   for (const [key, value] of Object.entries(searchParams)) {
@@ -128,58 +128,82 @@ export default async function ProductsPage({
               </div>
             ) : (
               <>
-                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {products.map((product) => {
                     const imageUrl = getPrimaryImageUrl(product);
+                    const displayPrice = formatPrice(
+                      product.sale_price_in_rupee,
+                    );
+                    const mrpPrice = formatPrice(
+                      Math.round(product.sale_price_in_rupee * 1.5),
+                    );
+
                     return (
                       <Link
                         key={product.id}
                         href={`/products/${product.id}`}
-                        className="group flex h-full flex-col overflow-hidden rounded-xl border border-border/60 bg-white p-5 shadow-md transition-colors hover:border-primary/20"
+                        className="group block rounded-[24px] border border-slate-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#0046B7] hover:shadow-md"
                       >
-                        <div className="flex px-4 justify-center">
-                          {imageUrl ? (
-                            <Image
-                              src={imageUrl}
-                              alt={product.name}
-                              width={280}
-                              height={280}
-                              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                              className="object-cover"
-                              unoptimized={imageUrl.startsWith("http://")}
-                            />
-                          ) : (
-                            <div className="flex h-48 w-full items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                              No image
+                        <div className="flex h-full flex-col px-4 pt-4 pb-5">
+                          <div className="relative rounded-2xl bg-slate-50 p-2">
+                            <div className="flex h-52 items-center justify-center">
+                              {imageUrl ? (
+                                <Image
+                                  src={imageUrl}
+                                  alt={product.name}
+                                  width={320}
+                                  height={260}
+                                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                  className="size-52 w-auto object-contain"
+                                  unoptimized={imageUrl.startsWith("http://")}
+                                />
+                              ) : (
+                                <div className="flex h-48 w-full items-center justify-center rounded-xl bg-slate-100 text-slate-400">
+                                  <span>No image</span>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                        <div className="mt-4 flex flex-1 flex-col">
-                          <p className="line-clamp-2 text-lg font-bold text-foreground group-hover:text-primary">
-                            {product.name}
-                          </p>
-                          {product.category?.name && (
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {product.category.name}
+                          </div>
+
+                          <div className="mt-4 space-y-2">
+                            <p className="line-clamp-2 text-sm font-semibold text-slate-800 group-hover:text-[#0046B7]">
+                              {product.name}
                             </p>
-                          )}
-                          {product.points?.length > 0 && (
-                            <ul className="mt-3 line-clamp-3 space-y-1 border-t border-border/60 pt-3">
-                              {product.points.slice(0, 3).map((point, i) => (
-                                <li
-                                  key={i}
-                                  className="flex items-start gap-2 text-sm text-muted-foreground"
-                                >
-                                  <span className="mt-1.5 size-1 shrink-0 rounded-full bg-primary" />
-                                  <span className="line-clamp-2">{point}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
+                            {product.category?.name && (
+                              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+                                {product.category.name}
+                              </p>
+                            )}
+
+                            {product.points?.length > 0 && (
+                              <ul className="mt-1 space-y-1">
+                                {product.points
+                                  .slice(0, 3)
+                                  .map((point, index) => (
+                                    <li
+                                      // eslint-disable-next-line react/no-array-index-key
+                                      key={index}
+                                      className="flex items-start gap-1.5 text-[11px] text-slate-500"
+                                    >
+                                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
+                                      <span className="line-clamp-2">
+                                        {point}
+                                      </span>
+                                    </li>
+                                  ))}
+                              </ul>
+                            )}
+
+                            <div className="flex items-center gap-2 pt-1">
+                              <span className="text-lg font-extrabold text-slate-900">
+                                {displayPrice}
+                              </span>
+                              <span className="text-xs text-slate-400 line-through">
+                                {mrpPrice}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-                        <p className="mt-4 text-xl font-extrabold text-foreground">
-                          {formatPrice(product.sale_price_in_rupee)}
-                        </p>
                       </Link>
                     );
                   })}
