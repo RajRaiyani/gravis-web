@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -38,7 +39,7 @@ const ValidationSchema = z.object({
 
 const PENDING_CUSTOMER_REGISTER_KEY = "pending_customer_register";
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
@@ -224,5 +225,23 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background px-4 py-12 md:px-6">
+          <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-md flex-col justify-center">
+            <div className="rounded-xl border border-border bg-card p-6 text-center text-sm text-muted-foreground shadow-sm sm:p-8">
+              Loading verification screen…
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <VerifyEmailPageContent />
+    </Suspense>
   );
 }
