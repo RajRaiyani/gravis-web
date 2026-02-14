@@ -40,7 +40,7 @@ export function ProductImageGallery({
   return (
     <div className="space-y-4">
       {/* Main image with arrows */}
-      <div className="relative aspect-square overflow-hidden rounded-xl border border-border/60 bg-muted/30">
+      <div className="relative aspect-square overflow-hidden rounded-2xl border border-border bg-muted/30">
         <Image
           src={currentUrl}
           alt={productName}
@@ -81,7 +81,7 @@ export function ProductImageGallery({
               type="button"
               onClick={() => setSelectedIndex(i)}
               className={cn(
-                "relative size-20 shrink-0 overflow-hidden rounded-lg border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40",
+                "relative size-20 shrink-0 overflow-hidden rounded-xl border-2 transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40",
                 i === selectedIndex
                   ? "border-primary ring-2 ring-primary/30"
                   : "border-border/60 bg-muted/30 hover:border-primary/50"

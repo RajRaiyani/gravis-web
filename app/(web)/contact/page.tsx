@@ -11,7 +11,6 @@ import {
   Youtube,
 } from "lucide-react";
 import { ContactForm } from "@/components/pages/contact/contact-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const contact = {
@@ -42,201 +41,221 @@ const offices = [
 ];
 
 const socialLinks = [
-  { icon: Facebook, label: "Facebook", href: "https://facebook.com" },
-  { icon: Twitter, label: "X (Twitter)", href: "https://x.com" },
+  { icon: Twitter,   label: "Twitter",   href: "https://x.com" },
   { icon: Instagram, label: "Instagram", href: "https://instagram.com" },
-  { icon: Linkedin, label: "LinkedIn", href: "https://linkedin.com" },
-  { icon: Youtube, label: "YouTube", href: "https://youtube.com" },
+  { icon: Facebook,  label: "Facebook",  href: "https://facebook.com" },
+  { icon: Linkedin,  label: "LinkedIn",  href: "https://linkedin.com" },
+  { icon: Youtube,   label: "YouTube",   href: "https://youtube.com" },
 ];
 
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <section className="border-b border-border bg-muted/20 px-4 py-12 md:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl text-center">
-          <h1 className="font-michroma text-3xl font-semibold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-            Contact Us
-          </h1>
-          <p className="mt-4 text-muted-foreground md:text-lg">
-            Have a question or want to work together? Get in touch via form,
-            email, or visit one of our offices.
-          </p>
-        </div>
-      </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-12 md:px-6 lg:px-8">
-        {/* Form + Contact info + Map */}
-        <div className="grid gap-10 lg:grid-cols-5 lg:gap-12">
-          {/* Form */}
-          <div className="lg:col-span-3">
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="font-michroma text-xl">
-                  Send a message
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Fill out the form and we&apos;ll get back to you within 24
-                  hours.
-                </p>
-              </CardHeader>
-              <CardContent>
-                <ContactForm />
-              </CardContent>
-            </Card>
-          </div>
+      {/* ── Page title ─────────────────────────────────────────────── */}
+      <div className="py-10 text-center md:py-14">
+        <h1 className="font-michroma text-3xl font-bold text-primary md:text-4xl lg:text-5xl">
+          Contact Us
+        </h1>
+        <p className="mt-3 text-sm text-muted-foreground md:text-base">
+          Any question or remarks? Just write us a message!
+        </p>
+      </div>
 
-          {/* Contact details + Map */}
-          <div className="space-y-8 lg:col-span-2">
-            {/* Email & Phone */}
-            <Card className="border-border bg-card">
-              <CardHeader>
-                <CardTitle className="font-michroma text-lg">
-                  Get in touch
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Email
-                  </p>
-                  <ul className="space-y-1">
-                    {contact.emails.map((email) => (
-                      <li key={email}>
-                        <a
-                          href={`mailto:${email}`}
-                          className="flex items-center gap-2 text-foreground transition-colors hover:text-primary"
-                        >
-                          <Mail className="h-4 w-4 shrink-0 text-primary/80" />
-                          {email}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Phone
-                  </p>
-                  <ul className="space-y-1">
-                    {contact.phones.map((phone) => (
-                      <li key={phone}>
-                        <a
-                          href={`tel:${phone.replace(/\s/g, "")}`}
-                          className="flex items-center gap-2 text-foreground transition-colors hover:text-primary"
-                        >
-                          <Phone className="h-4 w-4 shrink-0 text-primary/80" />
-                          {phone}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
+      <div className="mx-auto max-w-7xl px-4 pb-16 md:px-6 lg:px-8">
 
-            {/* Map - first office */}
-            <div className="overflow-hidden rounded-xl border border-border bg-muted/30">
-              <p className="border-b border-border bg-muted/50 px-4 py-2 text-sm font-medium text-foreground">
-                {offices[0].name}
-              </p>
-              <div className="aspect-4/3 w-full">
-                <iframe
-                  src={offices[0].mapEmbedUrl}
-                  title="Gravis head office location"
-                  className="h-full w-full border-0"
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
+        {/* ── Main card: blue left panel + form right panel ──────── */}
+        <div className="overflow-hidden rounded-4xl border border-border bg-card shadow-sm">
+          <div className="grid lg:grid-cols-[2fr_3fr]">
+
+            {/* ── LEFT: dark blue Contact Information panel ───────── */}
+            <div className="relative overflow-hidden bg-[#0a1e4e] px-8 py-10 text-white md:px-10 md:py-12">
+
+              {/* Decorative background circles */}
+              <div className="pointer-events-none absolute bottom-0 right-0 translate-x-1/4 translate-y-1/4">
+                <div className="h-64 w-64 rounded-full border border-white/10 bg-white/5" />
               </div>
-            </div>
+              <div className="pointer-events-none absolute bottom-16 right-16">
+                <div className="h-40 w-40 rounded-full border border-white/10 bg-white/5" />
+              </div>
 
-            {/* Social */}
-            <div>
-              <p className="mb-3 text-sm font-semibold text-foreground">
-                Follow us
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {socialLinks.map(({ icon: Icon, label, href }) => (
+              <div className="relative z-10 flex h-full flex-col">
+                {/* Heading */}
+                <div>
+                  <h2 className="font-michroma text-2xl font-bold text-white">
+                    Contact Information
+                  </h2>
+                  <p className="mt-2 text-sm text-blue-200/70">
+                    Say something to start a live chat!
+                  </p>
+                </div>
+
+                {/* Contact details */}
+                <div className="mt-10 flex flex-col gap-7">
                   <a
-                    key={label}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    aria-label={label}
+                    href={`tel:${contact.phones[0].replace(/\s/g, "")}`}
+                    className="flex items-center gap-4 text-sm text-white/90 transition-colors hover:text-white"
                   >
-                    <Icon className="h-5 w-5" />
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                      <Phone className="h-4 w-4" />
+                    </div>
+                    {contact.phones[0]}
                   </a>
-                ))}
+
+                  <a
+                    href={`mailto:${contact.emails[0]}`}
+                    className="flex items-center gap-4 text-sm text-white/90 transition-colors hover:text-white"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                      <Mail className="h-4 w-4" />
+                    </div>
+                    {contact.emails[0]}
+                  </a>
+
+                  <div className="flex items-start gap-4 text-sm text-white/90">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                      <MapPin className="h-4 w-4" />
+                    </div>
+                    <span>{offices[0].address}</span>
+                  </div>
+                </div>
+
+                {/* Social icons */}
+                <div className="relative z-10 mt-auto pt-14">
+                  <div className="flex items-center gap-3">
+                    {socialLinks.map(({ icon: Icon, label, href }) => (
+                      <a
+                        key={label}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={label}
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+                      >
+                        <Icon className="h-4 w-4" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* ── RIGHT: Form panel ───────────────────────────────── */}
+            <div className="bg-card px-8 py-10 md:px-10 md:py-12">
+              <ContactForm />
+            </div>
+
           </div>
         </div>
 
-        {/* Office locations */}
-        <section className="mt-16">
+        {/* ── Map — full width below card ──────────────────────────── */}
+        <div className="mt-8 overflow-hidden rounded-3xl border border-border">
+          <div className="flex items-center justify-between border-b border-border bg-muted/40 px-6 py-3">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <MapPin className="h-4 w-4 text-primary" />
+              {offices[0].name}
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link
+                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(offices[0].address)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open in Google Maps
+              </Link>
+            </Button>
+          </div>
+          <div className="h-72 w-full md:h-96">
+            <iframe
+              src={offices[0].mapEmbedUrl}
+              title="Gravis head office location"
+              className="h-full w-full border-0"
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </div>
+
+        {/* ── Office locations ─────────────────────────────────────── */}
+        <section className="mt-14">
           <h2 className="font-michroma text-2xl font-semibold tracking-tight text-foreground">
             Office locations
           </h2>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-sm text-muted-foreground">
             Visit us or give us a call at any of our offices.
           </p>
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+
+          <div className="mt-6 grid gap-5 sm:grid-cols-2">
             {offices.map((office) => (
-              <Card key={office.name} className="border-border bg-card">
-                <CardHeader>
-                  <CardTitle className="font-michroma text-lg">
+              <div
+                key={office.name}
+                className="overflow-hidden rounded-2xl border border-border bg-card"
+              >
+                {/* Office map thumbnail */}
+                <div className="h-44 w-full">
+                  <iframe
+                    src={office.mapEmbedUrl}
+                    title={`${office.name} location`}
+                    className="h-full w-full border-0"
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  />
+                </div>
+
+                {/* Office details */}
+                <div className="flex flex-col gap-3 p-5">
+                  <h3 className="font-michroma text-base font-semibold text-foreground">
                     {office.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
+                  </h3>
+
                   <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                      office.address
-                    )}`}
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(office.address)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-start gap-3 text-left text-muted-foreground transition-colors hover:text-primary"
+                    className="flex items-start gap-3 text-sm text-muted-foreground transition-colors hover:text-primary"
                   >
-                    <MapPin className="h-5 w-5 shrink-0 text-primary/80 mt-0.5" />
+                    <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary/70" />
                     <span>{office.address}</span>
                   </a>
+
                   <a
                     href={`tel:${office.phone.replace(/\s/g, "")}`}
-                    className="flex items-center gap-3 text-foreground transition-colors hover:text-primary"
+                    className="flex items-center gap-3 text-sm text-foreground transition-colors hover:text-primary"
                   >
-                    <Phone className="h-4 w-4 shrink-0 text-primary/80" />
+                    <Phone className="h-4 w-4 shrink-0 text-primary/70" />
                     {office.phone}
                   </a>
+
                   <a
                     href={`mailto:${office.email}`}
-                    className="flex items-center gap-3 text-foreground transition-colors hover:text-primary"
+                    className="flex items-center gap-3 text-sm text-foreground transition-colors hover:text-primary"
                   >
-                    <Mail className="h-4 w-4 shrink-0 text-primary/80" />
+                    <Mail className="h-4 w-4 shrink-0 text-primary/70" />
                     {office.email}
                   </a>
-                  <div className="flex items-center gap-3 text-muted-foreground">
-                    <Clock className="h-4 w-4 shrink-0 text-primary/80" />
+
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4 shrink-0 text-primary/70" />
                     {office.hours}
                   </div>
-                  <Button variant="outline" size="sm" asChild>
+
+                  <Button variant="outline" size="sm" className="mt-1 w-fit" asChild>
                     <Link
-                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        office.address
-                      )}`}
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(office.address)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
                       Open in Google Maps
                     </Link>
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </section>
+
       </div>
     </div>
   );
