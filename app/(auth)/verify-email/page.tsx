@@ -44,6 +44,11 @@ function VerifyEmailPageContent() {
   const searchParams = useSearchParams();
   const { login } = useAuth();
 
+  const rawRedirectUrl = searchParams.get("redirect_url");
+  const redirectUrl = rawRedirectUrl
+    ? decodeURIComponent(rawRedirectUrl)
+    : null;
+
   const {
     mutate: verifyEmail,
     isPending: verifying,
@@ -52,10 +57,18 @@ function VerifyEmailPageContent() {
   } = useMutation({
     mutationFn: (data: VerifyCustomerEmailRequest) => verifyCustomerEmail(data),
     onSuccess: (data) => {
+      let nextUrl = redirectUrl ?? "/";
+      
+      // If redirecting to a product page after auth, add flag to auto-open enquiry
+      if (redirectUrl && redirectUrl.startsWith("/products/")) {
+        const separator = nextUrl.includes("?") ? "&" : "?";
+        nextUrl = `${nextUrl}${separator}open_enquiry=true`;
+      }
+      
       login(data.customer, data.token, data.expires_at);
       localStorage.removeItem(PENDING_CUSTOMER_REGISTER_KEY);
-      toast.success("Email verified! You’re now signed in.");
-      router.replace(searchParams.get("redirect_url") ?? "/");
+      toast.success("Email verified! You're now signed in.");
+      router.replace(nextUrl);
     },
   });
 
@@ -69,6 +82,9 @@ function VerifyEmailPageContent() {
     onSuccess: (data) => {
       const query = new URLSearchParams();
       query.set("token", data.token);
+      if (redirectUrl) {
+        query.set("redirect_url", redirectUrl);
+      }
       router.replace(`/verify-email?${query.toString()}`);
       toast.success("A new code has been sent.");
     },
@@ -138,7 +154,7 @@ function VerifyEmailPageContent() {
                 Verify your email
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                We’ve emailed you a code. Paste it below to finish signing in.
+                We&apos;ve emailed you a code. Paste it below to finish signing in.
               </p>
             </div>
             <Link
@@ -214,7 +230,7 @@ function VerifyEmailPageContent() {
               </Button>
 
               <p className="text-center text-sm text-muted-foreground">
-                Didn’t receive the email?{" "}
+                Didn&apos;t receive the email?{" "}
                 <Link href="/contact" className="text-primary hover:underline">
                   Contact support
                 </Link>

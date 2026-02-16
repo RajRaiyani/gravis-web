@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -41,16 +41,13 @@ const defaultValues: z.infer<typeof ValidationSchema> = {
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isLoggedIn, login } = useAuth();
-  const redirectUrl = searchParams.get("redirect_url");
+  const { login } = useAuth();
+  const rawRedirectUrl = searchParams.get("redirect_url");
+  const redirectUrl = rawRedirectUrl
+    ? decodeURIComponent(rawRedirectUrl)
+    : null;
 
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      router.push("/");
-    }
-  }, [isLoggedIn, router]);
 
   const {
     mutate: loginMutate,
@@ -60,7 +57,16 @@ export default function LoginForm() {
   } = useMutation({
     mutationFn: (data: LoginCustomerRequest) => loginCustomer(data),
     onSuccess: (data) => {
-      const nextUrl = redirectUrl?.startsWith("/") ? redirectUrl : "/";
+      let nextUrl = redirectUrl && redirectUrl.startsWith("/")
+        ? redirectUrl
+        : "/";
+      
+      // If redirecting to a product page after auth, add flag to auto-open enquiry
+      if (redirectUrl && redirectUrl.startsWith("/products/")) {
+        const separator = nextUrl.includes("?") ? "&" : "?";
+        nextUrl = `${nextUrl}${separator}open_enquiry=true`;
+      }
+      
       login(data.customer, data.token, data.expires_at);
       toast.success("Signed in successfully.");
       router.replace(nextUrl);
