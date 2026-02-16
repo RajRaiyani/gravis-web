@@ -2,7 +2,15 @@ import Link from "next/link";
 
 import LoginForm from "@/components/pages/login/login-form";
 
-export default function LoginPage() {
+interface LoginPageProps {
+  searchParams: Promise<{ redirect_url?: string }>;
+}
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const resolved = await searchParams;
+  const redirectUrl = resolved.redirect_url;
+  const redirectQuery = redirectUrl ? `?redirect_url=${redirectUrl}` : "";
+
   return (
     <div className="min-h-screen bg-background px-4 py-12 md:px-6">
       <div className="mx-auto flex h-fit max-w-lg flex-col justify-center">
@@ -40,7 +48,7 @@ export default function LoginPage() {
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
-              href="/register"
+              href={`/register${redirectQuery}`}
               className="font-medium text-primary hover:underline"
             >
               Create one

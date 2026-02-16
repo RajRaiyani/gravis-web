@@ -1,7 +1,15 @@
 import Link from "next/link";
 import RegisterForm from "@/components/pages/register/register-form";
 
-export default function RegisterPage() {
+interface RegisterPageProps {
+  searchParams: Promise<{ redirect_url?: string }>;
+}
+
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+  const resolved = await searchParams;
+  const redirectUrl = resolved.redirect_url;
+  const redirectQuery = redirectUrl ? `?redirect_url=${redirectUrl}` : "";
+
   return (
     <div className="min-h-screen bg-background px-4 py-12 md:px-6">
       <div className="mx-auto flex min-h-[calc(100vh-6rem)] max-w-md flex-col justify-center">
@@ -39,7 +47,7 @@ export default function RegisterPage() {
           <p className="text-center text-sm text-muted-foreground mt-4">
             Already have an account?{" "}
             <Link
-              href="/login"
+              href={`/login${redirectQuery}`}
               className="font-medium text-primary hover:underline"
             >
               Log in

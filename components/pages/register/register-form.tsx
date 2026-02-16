@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +19,6 @@ import {
   FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 
 const ValidationSchema = z.object({
@@ -46,16 +45,12 @@ const defaultValues: z.infer<typeof ValidationSchema> = {
 export default function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isLoggedIn } = useAuth();
-  const redirectUrl = searchParams.get("redirect_url");
+  const rawRedirectUrl = searchParams.get("redirect_url");
+  const redirectUrl = rawRedirectUrl
+    ? decodeURIComponent(rawRedirectUrl)
+    : null;
 
   const [showPassword, setShowPassword] = useState(false);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      router.push("/");
-    }
-  }, [isLoggedIn, router]);
 
   const {
     mutate: register,
@@ -65,7 +60,8 @@ export default function RegisterForm() {
   } = useMutation({
     mutationFn: (data: RegisterCustomerRequest) => registerCustomer(data),
     onSuccess: (data) => {
-      const nextUrl = redirectUrl?.startsWith("/") ? redirectUrl : "/";
+      const nextUrl =
+        redirectUrl && redirectUrl.startsWith("/") ? redirectUrl : "/";
       const query = new URLSearchParams({ token: data.token });
       if (nextUrl) {
         query.set("redirect_url", nextUrl);

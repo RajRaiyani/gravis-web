@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-hot-toast";
 import { submitProductInquiry } from "@/services/api/inquiry.api";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +52,11 @@ export function EnquireNowButton({
   disabled,
   hasPendingInquiry,
 }: EnquireNowButtonProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { isLoggedIn } = useAuth();
+
   const [open, setOpen] = useState(false);
   const [hasSubmittedPending, setHasSubmittedPending] = useState(
     !!hasPendingInquiry,
@@ -63,7 +70,30 @@ export function EnquireNowButton({
   const { register, handleSubmit, formState, reset } = form;
   const { errors, isSubmitting } = formState;
 
-  const effectiveHasPending = hasPendingInquiry || hasSubmittedPending;
+  // Auto-open dialog if redirected from auth flow with open_enquiry param
+  useEffect(() => {
+    const shouldAutoOpen = searchParams.get("open_enquiry") === "true";
+    if (shouldAutoOpen && isLoggedIn && !hasPendingInquiry && !hasSubmittedPending) {
+      setOpen(true);
+      // Clean up the URL by removing the open_enquiry param
+      const newParams = new URLSearchParams(searchParams.toString());
+      newParams.delete("open_enquiry");
+      const newUrl = newParams.toString()
+        ? `${pathname}?${newParams.toString()}`
+        : pathname;
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [
+    searchParams,
+    isLoggedIn,
+    hasPendingInquiry,
+    hasSubmittedPending,
+    pathname,
+    router,
+  ]);
+
+  const effectiveHasPending =
+    (hasPendingInquiry || hasSubmittedPending) && isLoggedIn;
   const isDisabled = disabled || effectiveHasPending || isSubmitting;
   const buttonLabel =
     effectiveHasPending && productName
@@ -100,6 +130,31 @@ export function EnquireNowButton({
           : "Failed to submit enquiry. Please try again.";
       toast.error(message);
     }
+  }
+
+  const currentUrl = (() => {
+    const query = searchParams.toString();
+    return query ? `${pathname}?${query}` : pathname;
+  })();
+
+  const redirectToLogin = () => {
+    router.push(`/login?redirect_url=${encodeURIComponent(currentUrl)}`);
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <button
+        type="button"
+        className={className}
+        disabled={disabled}
+        aria-label={
+          productName ? `Enquire about ${productName}` : "Enquire now"
+        }
+        onClick={redirectToLogin}
+      >
+        {productName ? `Enquire about ${productName}` : "Enquire now"}
+      </button>
+    );
   }
 
   return (
