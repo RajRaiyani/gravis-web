@@ -146,6 +146,24 @@ export default async function ProductsPage({
                       >
                         <div className="flex h-full flex-col px-4 pt-4 pb-5">
                           <div className="relative rounded-2xl bg-slate-50 p-2">
+                            {/* Product label - top left pill */}
+                            {product.product_label && (
+                              <div className="pointer-events-none absolute left-3 top-3">
+                                <span className="pointer-events-auto inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-md">
+                                  {product.product_label}
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Warranty label - bottom right pill */}
+                            {product.warranty_label && (
+                              <div className="pointer-events-none absolute bottom-3 right-3">
+                                <span className="pointer-events-auto inline-flex items-center rounded-full bg-amber-300 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-slate-900 shadow-md">
+                                  {product.warranty_label}
+                                </span>
+                              </div>
+                            )}
+
                             <div className="flex h-52 items-center justify-center">
                               {imageUrl ? (
                                 <Image

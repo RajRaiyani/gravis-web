@@ -41,15 +41,39 @@ export interface Product {
   images: ProductImage[];
   has_pending_inquiry?: boolean;
   pending_inquiry_id?: string | null;
+  product_label?: string | null;
+  warranty_label?: string | null;
+  is_featured?: boolean;
 }
 
 export const listProducts = async (query: object = {}): Promise<Product[]> => {
-  const data = await serverHttpCall({
-    url: "/products",
-    method: "GET",
-    params: query,
-  });
-  return Array.isArray(data) ? data : [];
+  try {
+    const data = await serverHttpCall({
+      url: "/products",
+      method: "GET",
+      params: query,
+    });
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return [];
+  }
+};
+
+export const listFeaturedProducts = async (
+  query: { limit?: number; offset?: number } = {},
+): Promise<Product[]> => {
+  try {
+    const data = await serverHttpCall({
+      url: "/products/featured",
+      method: "GET",
+      params: query,
+    });
+    return Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Error fetching featured products:", error);
+    return [];
+  }
 };
 
 export const getProduct = async (id: string): Promise<Product | null> => {
