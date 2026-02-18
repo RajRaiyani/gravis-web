@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import RegisterForm from "@/components/pages/register/register-form";
 
@@ -43,7 +44,15 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             </Link>
           </div>
 
-          <RegisterForm />
+          <Suspense
+            fallback={
+              <div className="mt-6 text-sm text-muted-foreground">
+                Loading registration form…
+              </div>
+            }
+          >
+            <RegisterForm />
+          </Suspense>
           <p className="text-center text-sm text-muted-foreground mt-4">
             Already have an account?{" "}
             <Link

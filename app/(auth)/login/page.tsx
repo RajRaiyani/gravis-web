@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import LoginForm from "@/components/pages/login/login-form";
@@ -44,7 +45,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </Link>
           </div>
 
-          <LoginForm />
+          <Suspense
+            fallback={
+              <div className="mt-6 text-sm text-muted-foreground">
+                Loading login form…
+              </div>
+            }
+          >
+            <LoginForm />
+          </Suspense>
           <p className="text-center text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
             <Link
