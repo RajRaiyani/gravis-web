@@ -75,7 +75,7 @@ export const PopularProducts = async () => {
               >
                 <div className="flex h-full flex-col px-4 pt-4 pb-5">
                   <div className="relative rounded-2xl bg-slate-50 px-4 pt-3 pb-4">
-                    <span className="absolute left-4 top-3 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white">
+                    <span className="absolute left-4 top-3 rounded-full bg-linear-to-br from-orange-400 to-orange-600 text-white px-3 py-1 text-[11px] font-semibold">
                       Best Seller
                     </span>
                     <div className="mt-6 flex items-center justify-center">
@@ -94,23 +94,20 @@ export const PopularProducts = async () => {
                         </div>
                       )}
                     </div>
-                    <span className="absolute bottom-3 right-4 rounded-full bg-[#FFD95A] px-3 py-1 text-[10px] font-bold uppercase text-slate-900">
-                      2 Year Warranty
-                    </span>
+                    <span className="warranty-flag">2 Year Warranty</span>
                   </div>
 
                   <div className="mt-4 space-y-2">
-                    <p className="line-clamp-2 text-sm font-semibold text-slate-800 group-hover:text-[#0046B7]">
+                    <p className="line-clamp-2 text-base font-bold text-slate-800 group-hover:text-[#0046B7]">
                       {product.name}
                     </p>
 
                     {product.points?.length > 0 && (
-                      <ul className="mt-1 space-y-1">
+                      <ul className="mt-1 space-y-2">
                         {product.points.slice(0, 3).map((point, index) => (
                           <li
-                            // eslint-disable-next-line react/no-array-index-key
                             key={index}
-                            className="flex items-start gap-1.5 text-[11px] text-slate-500"
+                            className="flex items-start gap-1.5 text-sm text-gray-700"
                           >
                             <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
                             <span className="line-clamp-2">{point}</span>

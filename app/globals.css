@@ -132,3 +132,21 @@
 
 
 @import '../styles/base.css';
+
+/* Warranty label: right-aligned flag with left arrow cut */
+.warranty-flag {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.9rem 0.25rem 1.6rem;
+  background-color: #0137ac;
+  /* matches --primary */
+  color: #ffffff;
+  font-size: 0.75rem;
+  /* text-xs */
+  font-weight: 700;
+  text-transform: uppercase;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 12px 50%);
+}

@@ -1,9 +1,11 @@
 /* eslint-disable import/no-anonymous-default-export */
 
 export default {
+  
   contact_details: {
-    phoneNumber: "9662131626",
-    email: "contact@firelynk.com",
-    address: "105, IIT Gandhinagar Research Park, Gandhinagar, Gujarat, India",
+    phoneNumber: "7567156751",
+    technicalSupportPhoneNumber: "9426226165",
+    email: "sales@gravisindia.com",
+    address: "Gravis India Pvt Ltd Street Number 5, Rajputpara, Rajkot, Gujarat 360001",
   },
 };
