@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { listProducts, type Product } from "@/services/api/product.api";
+import { listFeaturedProducts, type Product } from "@/services/api/product.api";
 
 function getPrimaryImageUrl(product: Product): string | null {
   return (
@@ -20,7 +20,7 @@ function formatPrice(rupee: number): string {
 }
 
 export const PopularProducts = async () => {
-  const products = await listProducts({ limit: 8 });
+  const products = await listFeaturedProducts({ limit: 8 });
 
   if (!products?.length) {
     return (
@@ -75,9 +75,11 @@ export const PopularProducts = async () => {
               >
                 <div className="flex h-full flex-col px-4 pt-4 pb-5">
                   <div className="relative rounded-2xl bg-slate-50 px-4 pt-3 pb-4">
-                    <span className="absolute left-4 top-3 rounded-full bg-linear-to-br from-orange-400 to-orange-600 text-white px-3 py-1 text-[11px] font-semibold">
-                      Best Seller
-                    </span>
+                    {product.product_label && (
+                      <span className="absolute left-4 top-3 rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold text-white">
+                        {product.product_label}
+                      </span>
+                    )}
                     <div className="mt-6 flex items-center justify-center">
                       {imageUrl ? (
                         <Image
@@ -94,7 +96,11 @@ export const PopularProducts = async () => {
                         </div>
                       )}
                     </div>
-                    <span className="warranty-flag">2 Year Warranty</span>
+                    {product.warranty_label && (
+                      <span className="absolute bottom-3 right-4 rounded-full bg-[#FFD95A] px-3 py-1 text-[10px] font-bold uppercase text-slate-900">
+                        {product.warranty_label}
+                      </span>
+                    )}
                   </div>
 
                   <div className="mt-4 space-y-2">
