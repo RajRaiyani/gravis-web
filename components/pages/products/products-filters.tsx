@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { Search, X, SlidersHorizontal } from "lucide-react";
+import type { ProductCategory } from "@/services/api/product-category.api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 const DEBOUNCE_MS = 400;
 
@@ -10,6 +19,7 @@ interface ProductsFiltersProps {
   initialSearch: string;
   categoryId: string | undefined;
   limit: number;
+  categories?: ProductCategory[];
 }
 
 function buildSearchUrl(params: {
@@ -23,13 +33,26 @@ function buildSearchUrl(params: {
   return `/products?${new URLSearchParams(q).toString()}`;
 }
 
+function buildCategoryUrl(params: {
+  categoryId?: string;
+  search?: string;
+  limit: number;
+}): string {
+  const q: Record<string, string> = { limit: String(params.limit) };
+  if (params.categoryId) q.category_id = params.categoryId;
+  if (params.search) q.search = params.search;
+  return `/products?${new URLSearchParams(q).toString()}`;
+}
+
 export function ProductsFilters({
   initialSearch,
   categoryId,
   limit,
+  categories = [],
 }: ProductsFiltersProps) {
   const router = useRouter();
   const [value, setValue] = useState(initialSearch);
+  const hasCategoryFilter = categories.length > 0;
 
   // Sync local value when initialSearch changes (e.g. navigation back)
   useEffect(() => {
@@ -58,15 +81,27 @@ export function ProductsFilters({
     router.push(url);
   }, [categoryId, limit, router]);
 
+  const selectCategory = useCallback(
+    (categoryId: string | undefined) => {
+      const url = buildCategoryUrl({
+        categoryId,
+        search: value.trim() || undefined,
+        limit,
+      });
+      router.push(url);
+    },
+    [value, limit, router]
+  );
+
   return (
-    <div className="mb-6  flex items-center gap-2 rounded-lg border border-primary/60 bg-transparent px-3 py-2">
+    <div className="mb-6 flex flex-row items-center gap-2 rounded-lg border border-primary/60 bg-transparent px-3 py-2">
       <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
       <input
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search products..."
-        className="min-w-0  flex-1 bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+        className="min-w-0 flex-1 bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
         aria-label="Search products"
         autoComplete="off"
       />
@@ -80,6 +115,41 @@ export function ProductsFilters({
           <X className="size-4" />
         </button>
       ) : null}
+      {hasCategoryFilter && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "shrink-0",
+                categoryId ? "text-primary" : "text-muted-foreground"
+              )}
+              aria-label="Filter by category"
+            >
+              <SlidersHorizontal className="size-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="max-h-[min(70vh,20rem)] w-56">
+            <DropdownMenuItem
+              onClick={() => selectCategory(undefined)}
+              className={cn(!categoryId && "bg-accent")}
+            >
+              All categories
+            </DropdownMenuItem>
+            {categories.map((cat) => (
+              <DropdownMenuItem
+                key={cat.id}
+                onClick={() => selectCategory(cat.id)}
+                className={cn(categoryId === cat.id && "bg-accent")}
+              >
+                {cat.name}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </div>
   );
 }

@@ -110,18 +110,9 @@ export default async function ProductsPage({
 
   return (
     <div className="min-h-screen bg-neutral-100">
-      <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-        {/* <header className="mb-8">
-          <h1 className="font-michroma text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
-            Products
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Browse our range of generators and equipment
-          </p>
-        </header> */}
+      <ProductsPageBanner url={banner.url} alt={banner.alt} />
 
-        <ProductsPageBanner url={banner.url} alt={banner.alt} />
-
+      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
         <div className="flex flex-col gap-8 lg:flex-row">
           <ProductCategorySidebar
             categories={categories}
@@ -135,6 +126,7 @@ export default async function ProductsPage({
               initialSearch={query.search ?? ""}
               categoryId={query.category_id}
               limit={query.limit}
+              categories={categories}
             />
 
             {!products.length ? (

@@ -33,44 +33,7 @@ export function ProductCategorySidebar({
       className="w-full shrink-0 lg:w-64 lg:sticky lg:top-24 lg:self-start"
       aria-label="Filter by category"
     >
-      {/* Mobile: horizontal pill list */}
-      <div className="mb-4 flex gap-2 overflow-x-auto rounded-xl bg-white p-3 shadow-sm scrollbar-hide lg:hidden">
-        <Link
-          href={allUrl}
-          className={cn(
-            "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-            !currentCategoryId
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-background text-foreground hover:bg-muted"
-          )}
-        >
-          All categories
-        </Link>
-        {categories.map((cat) => {
-          const isActive = currentCategoryId === cat.id;
-          const url = buildCategoryUrl({
-            categoryId: cat.id,
-            search,
-            limit,
-          });
-          return (
-            <Link
-              key={cat.id}
-              href={url}
-              className={cn(
-                "whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                isActive
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-background text-foreground hover:bg-muted"
-              )}
-            >
-              {cat.name}
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Desktop: sticky vertical sidebar */}
+      {/* Desktop: sticky vertical sidebar (category filter on mobile is in search row) */}
       <aside className="hidden lg:block">
         <div className="flex max-h-none flex-col rounded-xl border border-border/60 bg-white p-4 lg:max-h-[calc(100vh-7rem)]">
           <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
