@@ -52,7 +52,7 @@ export default async function Hero() {
           <CarouselContent>
             {allBanners.map((banner, index) => (
               <CarouselItem key={index} className="relative w-full">
-                <div className="relative w-full aspect-16/6">
+                <div className="relative w-full aspect-[5/2]">
                   <Image
                     src={banner.url}
                     alt={banner.alt}

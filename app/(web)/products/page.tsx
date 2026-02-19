@@ -112,7 +112,7 @@ export default async function ProductsPage({
     <div className="min-h-screen bg-neutral-100">
       <ProductsPageBanner url={banner.url} alt={banner.alt} />
 
-      <div className="mx-auto max-w-7xl px-4 md:px-6 lg:px-8">
+      <div className="mx-auto container px-4 md:px-0 lg:px-0">
         <div className="flex flex-col gap-8 lg:flex-row">
           <ProductCategorySidebar
             categories={categories}

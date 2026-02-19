@@ -8,8 +8,8 @@ interface ProductsPageBannerProps {
 export function ProductsPageBanner({ url, alt }: ProductsPageBannerProps) {
   return (
     <section className="w-full py-0 md:py-8">
-      <div className="overflow-hidden rounded-none shadow-md md:rounded-2xl md:border md:border-slate-200">
-        <div className="relative w-full aspect-16/6">
+      <div className="overflow-hidden rounded-none md:rounded-2xl container mx-auto">
+        <div className="relative container mx-auto w-full aspect-[5/2]">
           <Image
             src={url}
             alt={alt}
