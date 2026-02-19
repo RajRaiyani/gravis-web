@@ -6,32 +6,39 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { listCategoryBanners } from "@/services/api/product-category.api";
 
-interface Banner {
-  image: string;
-  image_md: string;
+interface BannerImage {
+  url: string;
+  alt: string;
 }
 
-const banners: Banner[] = [
-  {
-    image: "/images/pages/home/hero-banner-1.png",
-    image_md: "/images/pages/home/hero-banner-1.png",
-  },
-  {
-    image: "/images/pages/home/hero-banner-2.png",
-    image_md: "/images/pages/home/hero-banner-2.png",
-  },
-  {
-    image: "/images/pages/home/hero-banner-3.png",
-    image_md: "/images/pages/home/hero-banner-3.png",
-  },
-  {
-    image: "/images/pages/home/hero-banner-4.png",
-    image_md: "/images/pages/home/hero-banner-4.png",
-  },
-];
+export default async function Hero() {
+  let apiBanners: BannerImage[] = [];
 
-export default function Hero() {
+  try {
+    const banners = await listCategoryBanners();
+    apiBanners = (banners ?? [])
+      .filter((banner) => banner?.banner_image?.url)
+      .map((banner) => ({
+        url: banner.banner_image!.url,
+        alt: banner.name ?? "Banner",
+      }));
+  } catch (error) {
+    console.error("Failed to fetch banners:", error);
+  }
+
+  const defaultBanner: BannerImage = {
+    url: "/images/pages/home/hero-banner-1.png",
+    alt: "Gravis promotional banner",
+  };
+
+  const allBanners = [defaultBanner, ...apiBanners];
+
+  if (allBanners.length === 0) {
+    allBanners.push(defaultBanner);
+  }
+
   return (
     <section className="w-full py-6 md:py-8">
       <div className="overflow-hidden rounded-none shadow-md border border-slate-200 md:rounded-2xl">
@@ -43,20 +50,19 @@ export default function Hero() {
           }}
         >
           <CarouselContent>
-            {banners.map((banner, index) => (
+            {allBanners.map((banner, index) => (
               <CarouselItem key={index} className="relative w-full">
                 <div className="relative w-full aspect-16/6">
                   <Image
-                    src={banner.image}
-                    alt="Gravis promotional banner"
+                    src={banner.url}
+                    alt={banner.alt}
                     fill
                     className="block rounded-none object-cover md:hidden"
                     priority={index === 0}
                   />
-                  {/* Desktop Image */}
                   <Image
-                    src={banner.image_md}
-                    alt="Gravis promotional banner"
+                    src={banner.url}
+                    alt={banner.alt}
                     fill
                     className="hidden object-cover h-full w-full rounded-none md:block"
                     priority={index === 0}

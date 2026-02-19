@@ -13,8 +13,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "server.gravisindia.com",
         pathname: "/files/**",
-      }
+      },
     ],
+    // Allow images from localhost (resolves to 127.0.0.1) in development only
+    // dangerouslyAllowLocalIP: process.env.NODE_ENV === "development",
   },
 };
 

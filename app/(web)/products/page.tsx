@@ -2,13 +2,17 @@ import Image from "next/image";
 import Link from "next/link";
 import { listProducts } from "@/services/api/product.api";
 import type { Product } from "@/services/api/product.api";
-import { listProductCategories } from "@/services/api/product-category.api";
+import {
+  listProductCategories,
+  listCategoryBanners,
+} from "@/services/api/product-category.api";
 import {
   productListQuerySchema,
   type ProductListQuery,
 } from "@/lib/product-query-schema";
 import { ProductsFilters } from "@/components/pages/products/products-filters";
 import { ProductCategorySidebar } from "@/components/pages/products/product-category-sidebar";
+import { ProductsPageBanner } from "@/components/pages/products/products-page-banner";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function getPrimaryImageUrl(product: Product): string | null {
@@ -75,10 +79,27 @@ export default async function ProductsPage({
   if (query.category_id) apiParams.category_id = query.category_id;
   if (query.search) apiParams.search = query.search;
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, banners] = await Promise.all([
     listProducts(apiParams),
     listProductCategories(),
+    listCategoryBanners().catch(() => []),
   ]);
+
+  const defaultBanner = {
+    url: "/images/pages/home/hero-banner-1.png",
+    alt: "Gravis promotional banner",
+  };
+  const categoryBanner = query.category_id
+    ? banners.find(
+        (b) => b.id === query.category_id && b.banner_image?.url,
+      )
+    : null;
+  const banner = categoryBanner
+    ? {
+        url: categoryBanner.banner_image!.url,
+        alt: categoryBanner.name ?? "Category banner",
+      }
+    : defaultBanner;
 
   const hasNext = products.length === query.limit;
   const nextOffset = query.offset + query.limit;
@@ -90,14 +111,16 @@ export default async function ProductsPage({
   return (
     <div className="min-h-screen bg-neutral-100">
       <div className="mx-auto max-w-7xl px-4 py-8 md:px-6 lg:px-8">
-        <header className="mb-8">
+        {/* <header className="mb-8">
           <h1 className="font-michroma text-3xl font-semibold tracking-tight text-foreground md:text-4xl">
             Products
           </h1>
           <p className="mt-2 text-muted-foreground">
             Browse our range of generators and equipment
           </p>
-        </header>
+        </header> */}
+
+        <ProductsPageBanner url={banner.url} alt={banner.alt} />
 
         <div className="flex flex-col gap-8 lg:flex-row">
           <ProductCategorySidebar

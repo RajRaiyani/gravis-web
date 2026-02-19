@@ -97,7 +97,7 @@ export const PopularProducts = async () => {
                       )}
                     </div>
                     {product.warranty_label && (
-                      <span className="absolute bottom-3 right-4 rounded-full bg-[#FFD95A] px-3 py-1 text-[10px] font-bold uppercase text-slate-900">
+                      <span className="warranty-flag">
                         {product.warranty_label}
                       </span>
                     )}
