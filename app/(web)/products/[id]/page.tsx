@@ -4,7 +4,7 @@ import { getProduct } from "@/services/api/product.api";
 import type { Product } from "@/services/api/product.api";
 import { ProductImageGallery } from "@/components/pages/products/product-image-gallery";
 import { AddEnquiryButton } from "@/components/pages/products/add-enquiry-button";
-import { ChevronRight, Star, Truck, RefreshCcw, Gift } from "lucide-react";
+import { ChevronRight, Star, Truck, RefreshCcw, ShieldCheck } from "lucide-react";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -39,12 +39,17 @@ export default async function ProductDetailPage({
   if (!product) notFound();
 
   const imageUrls = getImageUrls(product);
-  const validDetails = (product.technical_details ?? []).filter(
+  const technicalRows = (product.technical_details ?? []).filter(
     (r) => r.label?.trim() || r.value?.trim()
   );
-  const half = Math.ceil(validDetails.length / 2);
-  const specsLeft  = validDetails.slice(0, half);
-  const specsRight = validDetails.slice(half);
+  const filterRows = (product.filter_options ?? []).map((fo) => ({
+    label: fo.filter_name,
+    value: fo.value,
+  }));
+  const allAttributeRows = [...filterRows, ...technicalRows];
+  const half = Math.ceil(allAttributeRows.length / 2);
+  const specsLeft = allAttributeRows.slice(0, half);
+  const specsRight = allAttributeRows.slice(half);
 
   return (
     <div className="min-h-screen bg-background">
@@ -54,23 +59,21 @@ export default async function ProductDetailPage({
         <nav className="mb-6 flex items-center gap-1.5 text-sm text-muted-foreground">
           <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
           <ChevronRight className="size-3.5 shrink-0" />
-          <Link href="/products" className="hover:text-foreground transition-colors">Product</Link>
+          <Link href="/products" className="hover:text-foreground transition-colors">Products</Link>
           <ChevronRight className="size-3.5 shrink-0" />
-          <span className="text-foreground" aria-current="page">Product Description</span>
-          <ChevronRight className="size-3.5 shrink-0" />
+          <span className="text-foreground truncate max-w-[180px] sm:max-w-none" aria-current="page">{product.name}</span>
         </nav>
 
         {/* ── Main two-column grid ─────────────────────────────────── */}
         <div className="grid gap-5 lg:grid-cols-[1fr_1fr] lg:gap-6 xl:grid-cols-[45fr_55fr]">
 
-          {/* ── LEFT: Image panel (rounded box with badges) ────────── */}
+          {/* ── LEFT: Image panel (rounded box with badges from API) ────────── */}
           <div className="relative rounded-2xl border border-border  bg-card p-4 shadow-sm md:p-5">
-            <span className="absolute left-6 top-6 z-10 rounded-md border border-border bg-muted/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-foreground shadow-sm md:left-7 md:top-7">
-              Best Seller
-            </span>
-            <span className="absolute right-6 top-6 z-10 rounded-full bg-amber-500 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm md:right-7 md:top-7">
-              2 Year Warranty
-            </span>
+            {product.product_label != null && product.product_label.trim() !== "" && (
+              <span className="absolute left-6 top-6 z-10 rounded-md border border-border bg-muted/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-foreground shadow-sm md:left-7 md:top-7">
+                {product.product_label}
+              </span>
+            )}
             <ProductImageGallery images={imageUrls} productName={product.name} />
           </div>
 
@@ -112,6 +115,7 @@ export default async function ProductDetailPage({
                 <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                   ★ Special Price
                 </span>
+
               </div>
 
               {/* Price */}
@@ -133,6 +137,30 @@ export default async function ProductDetailPage({
                     }`}
                   />
                 ))}
+              </div>
+
+              {/* Perks: Shipping, Returns, Warranty */}
+              <div className="grid grid-cols-3 gap-0 overflow-hidden rounded-2xl border border-border bg-muted/20">
+                <div className="flex items-center justify-center gap-2.5 px-4 py-3.5 min-w-0" title="Free Shipping">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <Truck className="size-4" aria-hidden />
+                  </span>
+                  <span className="text-xs font-semibold text-foreground truncate">Free Shipping</span>
+                </div>
+                <div className="flex items-center justify-center gap-2.5 px-4 py-3.5 min-w-0 border-x border-border" title="Easy Returns">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <RefreshCcw className="size-4" aria-hidden />
+                  </span>
+                  <span className="text-xs font-semibold text-foreground truncate">Easy Returns</span>
+                </div>
+                <div className="flex items-center justify-center gap-2.5 px-4 py-3.5 min-w-0" title={product.warranty_label ?? "Warranty"}>
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                    <ShieldCheck className="size-4" aria-hidden />
+                  </span>
+                  <span className="text-xs font-semibold text-foreground truncate">
+                    {product.warranty_label?.trim() || "Warranty"}
+                  </span>
+                </div>
               </div>
 
               {/* Tags */}
@@ -187,42 +215,6 @@ export default async function ProductDetailPage({
           </div>
         </div>
 
-        {/* ── Perks bar (single rounded box, 3 columns) ─────────────── */}
-        <div className="mt-6 grid grid-cols-1 overflow-hidden rounded-2xl border border-border bg-card shadow-sm sm:grid-cols-3">
-          {[
-            {
-              icon: Truck,
-              title: "Free Shipping",
-              sub: "On all orders over ₹500. Learn more.",
-            },
-            {
-              icon: RefreshCcw,
-              title: "Easy Returns",
-              sub: "Extended returns through January 31. Returns Details.",
-            },
-            {
-              icon: Gift,
-              title: "Send It As A Gift",
-              sub: "Add a free personalized note during checkout.",
-            },
-          ].map(({ icon: Icon, title, sub }, i) => (
-            <div
-              key={title}
-              className={`flex items-start gap-3 bg-card px-5 py-4 ${
-                i < 2
-                  ? "border-b border-border sm:border-b-0 sm:border-r"
-                  : ""
-              }`}
-            >
-              <Icon className="mt-0.5 size-5 shrink-0 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-semibold text-foreground">{title}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
         {/* ── Description (rounded box) ─────────────────────────────── */}
         {product.description && (
           <div className="mt-10 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
@@ -232,19 +224,28 @@ export default async function ProductDetailPage({
             <p className="mt-4 text-sm leading-7 text-foreground md:text-base md:leading-8">
               {product.description}
             </p>
-            <button className="mt-5 inline-flex items-center rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted">
-              Read More
-            </button>
+           
           </div>
         )}
       </div>
 
-      {/* ── Specifications + Product Details (rounded boxes) ────────── */}
-      {validDetails.length > 0 && (
+      {/* ── Specifications / Product details (from filter_options + technical_details, labels from API) ────────── */}
+      {allAttributeRows.length > 0 && (
         <div className="mx-auto container px-4 py-10 md:px-6 lg:px-8">
           <div className="grid gap-6 md:grid-cols-2 md:gap-8">
-
-            {/* Specifications */}
+            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
+              <h2 className="inline-block text-base font-bold text-primary border-b-2 border-primary pb-0.5">
+                Technical Details
+              </h2>
+              <div className="mt-5 space-y-5">
+                {specsRight.map((row, i) => (
+                  <div key={i}>
+                    <p className="text-sm font-semibold text-foreground">{row.label}</p>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{row.value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
             <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
               <h2 className="inline-block text-base font-bold text-primary border-b-2 border-primary pb-0.5">
                 Specifications
@@ -257,21 +258,6 @@ export default async function ProductDetailPage({
                   >
                     <span className="font-medium text-foreground">{row.label}</span>
                     <span className="text-right text-muted-foreground">{row.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Product Details */}
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
-              <h2 className="inline-block text-base font-bold text-primary border-b-2 border-primary pb-0.5">
-                Product Details
-              </h2>
-              <div className="mt-5 space-y-5">
-                {specsRight.map((row, i) => (
-                  <div key={i}>
-                    <p className="text-sm font-semibold text-foreground">{row.label}</p>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{row.value}</p>
                   </div>
                 ))}
               </div>

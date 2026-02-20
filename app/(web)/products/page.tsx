@@ -202,7 +202,7 @@ export default function ProductsPage() {
 
                             {product.warranty_label && (
                               <div className="pointer-events-none absolute bottom-3 right-3">
-                                <span className="pointer-events-auto inline-flex items-center rounded-full bg-amber-300 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-slate-900 shadow-md">
+                                <span className="warranty-flag text-nowrap">
                                   {product.warranty_label}
                                 </span>
                               </div>

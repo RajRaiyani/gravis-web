@@ -23,6 +23,14 @@ export interface ProductTechnicalDetail {
   value: string;
 }
 
+/** Attribute/spec from category filters, shown on product detail (label = filter_name, value = selected option) */
+export interface ProductFilterOption {
+  filter_option_id: string;
+  filter_id: string;
+  filter_name: string;
+  value: string;
+}
+
 export interface Product {
   id: string;
   category_id: string;
@@ -32,6 +40,7 @@ export interface Product {
   metadata: Record<string, unknown>;
   sale_price_in_paisa: number;
   sale_price_in_rupee: number;
+  sale_price?: number;
   created_at: string;
   updated_at: string;
   points: string[];
@@ -45,6 +54,7 @@ export interface Product {
   warranty_label?: string | null;
   is_featured?: boolean;
   filter_option_ids?: string[];
+  filter_options?: ProductFilterOption[];
 }
 
 export const listProducts = async (query: object = {}): Promise<Product[]> => {
