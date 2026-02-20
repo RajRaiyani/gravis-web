@@ -18,16 +18,14 @@ const DEBOUNCE_MS = 400;
 interface ProductsFiltersProps {
   initialSearch: string;
   categoryId: string | undefined;
-  limit: number;
   categories?: ProductCategory[];
 }
 
 function buildSearchUrl(params: {
   search: string;
   categoryId: string | undefined;
-  limit: number;
 }): string {
-  const q: Record<string, string> = { limit: String(params.limit) };
+  const q: Record<string, string> = {};
   if (params.categoryId) q.category_id = params.categoryId;
   if (params.search.trim()) q.search = params.search.trim().toLowerCase();
   return `/products?${new URLSearchParams(q).toString()}`;
@@ -36,9 +34,8 @@ function buildSearchUrl(params: {
 function buildCategoryUrl(params: {
   categoryId?: string;
   search?: string;
-  limit: number;
 }): string {
-  const q: Record<string, string> = { limit: String(params.limit) };
+  const q: Record<string, string> = {};
   if (params.categoryId) q.category_id = params.categoryId;
   if (params.search) q.search = params.search;
   return `/products?${new URLSearchParams(q).toString()}`;
@@ -47,7 +44,6 @@ function buildCategoryUrl(params: {
 export function ProductsFilters({
   initialSearch,
   categoryId,
-  limit,
   categories = [],
 }: ProductsFiltersProps) {
   const router = useRouter();
@@ -67,30 +63,28 @@ export function ProductsFilters({
       const url = buildSearchUrl({
         search: value,
         categoryId,
-        limit,
       });
       router.push(url);
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(t);
-  }, [value, initialSearch, categoryId, limit, router]);
+  }, [value, initialSearch, categoryId, router]);
 
   const handleClear = useCallback(() => {
     setValue("");
-    const url = buildSearchUrl({ search: "", categoryId, limit });
+    const url = buildSearchUrl({ search: "", categoryId });
     router.push(url);
-  }, [categoryId, limit, router]);
+  }, [categoryId, router]);
 
   const selectCategory = useCallback(
     (categoryId: string | undefined) => {
       const url = buildCategoryUrl({
         categoryId,
         search: value.trim() || undefined,
-        limit,
       });
       router.push(url);
     },
-    [value, limit, router]
+    [value, router]
   );
 
   return (

@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+const uuidString = z
+  .uuid({ version: "v7", message: "Invalid UUID" });
+
+/** option_id from query: single string or array of strings → array of UUIDs */
+const optionIdArray = z
+  .union([
+    z.string().transform((v) => (v ? [v] : [])),
+    z.array(z.string()).transform((arr) => arr.filter(Boolean)),
+  ])
+  .optional()
+  .default([])
+  .pipe(z.array(uuidString).catch(() => []));
+
 export const productListQuerySchema = z.object({
   category_id: z
     .string()
@@ -12,24 +25,8 @@ export const productListQuerySchema = z.object({
         .optional()
     ),
   search: z.string().trim().toLowerCase().optional(),
-  offset: z
-    .string()
-    .default("0")
-    .transform((val) => parseInt(val, 10))
-    .pipe(
-      z.number().int().min(0, "Offset must be at least 0")
-    ),
-  limit: z
-    .string()
-    .default("30")
-    .transform((val) => parseInt(val, 10))
-    .pipe(
-      z
-        .number()
-        .int()
-        .min(1, "Limit must be greater than 0")
-        .max(100, "Limit must be less than 100")
-    ),
+  /** Filter by these filter-option IDs (product must match selected options). */
+  option_id: optionIdArray,
 });
 
 export type ProductListQuery = z.infer<typeof productListQuerySchema>;

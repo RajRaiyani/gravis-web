@@ -1,19 +1,24 @@
+"use client";
+
+import { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { listProducts } from "@/services/api/product.api";
-import type { Product } from "@/services/api/product.api";
-import {
-  listProductCategories,
-  listCategoryBanners,
-} from "@/services/api/product-category.api";
+import { useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   productListQuerySchema,
   type ProductListQuery,
 } from "@/lib/product-query-schema";
+import type { Product } from "@/services/api/product.api";
+import {
+  listProductCategoriesClient,
+  listCategoryBannersClient,
+  getCategoryFiltersClient,
+} from "@/services/api/product-category.api.client";
+import { useInfiniteProducts } from "@/hooks/useInfiniteProducts";
 import { ProductsFilters } from "@/components/pages/products/products-filters";
-import { ProductCategorySidebar } from "@/components/pages/products/product-category-sidebar";
+import { CategoryFiltersSidebar } from "@/components/pages/products/category-filters-sidebar";
 import { ProductsPageBanner } from "@/components/pages/products/products-page-banner";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 
 function getPrimaryImageUrl(product: Product): string | null {
   return (
@@ -32,104 +37,130 @@ function formatPrice(rupee: number): string {
   }).format(rupee);
 }
 
-function normalizeSearchParams(
-  searchParams: Record<string, string | string[] | undefined>,
-): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const [key, value] of Object.entries(searchParams)) {
-    if (value === undefined) continue;
-    const single = Array.isArray(value) ? value[0] : value;
-    if (single !== undefined) out[key] = single;
-  }
-  return out;
-}
-
-function buildProductsQueryString(params: ProductListQuery): string {
-  const q: Record<string, string> = {
-    offset: String(params.offset),
-    limit: String(params.limit),
+function getQueryFromSearchParams(
+  searchParams: ReturnType<typeof useSearchParams>
+): ProductListQuery {
+  const optionIds = searchParams.getAll("option_id");
+  const raw: Record<string, string | string[]> = {
+    category_id: searchParams.get("category_id") ?? "",
+    search: searchParams.get("search") ?? "",
+    option_id: optionIds.length ? optionIds : [],
   };
-  if (params.category_id) q.category_id = params.category_id;
-  if (params.search) q.search = params.search;
-  return new URLSearchParams(q).toString();
-}
-
-export default async function ProductsPage({
-  searchParams,
-}: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
-}) {
-  const resolved = await searchParams;
-  const normalized = normalizeSearchParams(resolved);
-  const parsed = productListQuerySchema.safeParse(normalized);
-
-  const query: ProductListQuery = parsed.success
+  const parsed = productListQuerySchema.safeParse(raw);
+  return parsed.success
     ? parsed.data
     : {
-        offset: 0,
-        limit: 30,
         category_id: undefined,
         search: undefined,
+        option_id: [],
       };
+}
 
-  const apiParams: Record<string, string | number> = {
-    offset: query.offset,
-    limit: query.limit,
-  };
-  if (query.category_id) apiParams.category_id = query.category_id;
-  if (query.search) apiParams.search = query.search;
+export default function ProductsPage() {
+  const searchParams = useSearchParams();
 
-  const [products, categories, banners] = await Promise.all([
-    listProducts(apiParams),
-    listProductCategories(),
-    listCategoryBanners().catch(() => []),
-  ]);
+  const query = useMemo(
+    () => getQueryFromSearchParams(searchParams),
+    [searchParams]
+  );
 
-  const defaultBanner = {
-    url: "/images/pages/home/hero-banner-1.png",
-    alt: "Gravis promotional banner",
-  };
-  const categoryBanner = query.category_id
-    ? banners.find(
-        (b) => b.id === query.category_id && b.banner_image?.url,
-      )
-    : null;
-  const banner = categoryBanner
-    ? {
-        url: categoryBanner.banner_image!.url,
-        alt: categoryBanner.name ?? "Category banner",
-      }
-    : defaultBanner;
+  const filterParams = useMemo(() => {
+    const p: Record<string, string | number | string[]> = {};
+    if (query.category_id) p.category_id = query.category_id;
+    if (query.search) p.search = query.search;
+    if (query.option_id?.length) p.option_id = query.option_id;
+    return p;
+  }, [query]);
 
-  const hasNext = products.length === query.limit;
-  const nextOffset = query.offset + query.limit;
-  const prevOffset = Math.max(0, query.offset - query.limit);
+  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+    queryKey: ["product-categories"],
+    queryFn: listProductCategoriesClient,
+  });
 
-  const nextQuery = { ...query, offset: nextOffset };
-  const prevQuery = { ...query, offset: prevOffset };
+  const { data: banners = [] } = useQuery({
+    queryKey: ["category-banners"],
+    queryFn: listCategoryBannersClient,
+  });
+
+  const {
+    products,
+    isLoading: productsLoading,
+    isFetchingNextPage,
+    loadMoreRef,
+  } = useInfiniteProducts({ filterParams });
+
+  const { data: categoryFilters = [] } = useQuery({
+    queryKey: ["category-filters", query.category_id],
+    queryFn: () =>
+      query.category_id
+        ? getCategoryFiltersClient(query.category_id)
+        : Promise.resolve([]),
+    enabled: !!query.category_id,
+  });
+
+  const defaultBanner = useMemo(
+    () => ({
+      url: "/images/pages/home/hero-banner-1.png",
+      alt: "Gravis promotional banner",
+    }),
+    []
+  );
+
+  const banner = useMemo(() => {
+    if (!query.category_id) return defaultBanner;
+    const categoryBanner = banners.find(
+      (b) => b.id === query.category_id && b.banner_image?.url
+    );
+    return categoryBanner
+      ? {
+          url: categoryBanner.banner_image!.url,
+          alt: categoryBanner.name ?? "Category banner",
+        }
+      : defaultBanner;
+  }, [query.category_id, banners, defaultBanner]);
+
+  const isLoading = productsLoading || categoriesLoading;
 
   return (
     <div className="min-h-screen bg-neutral-100">
       <ProductsPageBanner url={banner.url} alt={banner.alt} />
 
       <div className="mx-auto container px-4 md:px-0 lg:px-0">
-        <div className="flex flex-col gap-8 lg:flex-row">
-          <ProductCategorySidebar
+        <div className="mb-4 lg:mb-6">
+          <ProductsFilters
+            initialSearch={query.search ?? ""}
+            categoryId={query.category_id}
+            categories={categories}
+          />
+        </div>
+
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          <CategoryFiltersSidebar
             categories={categories}
             currentCategoryId={query.category_id}
+            categoryFilters={categoryFilters}
+            selectedOptionIds={query.option_id ?? []}
             search={query.search}
-            limit={query.limit}
           />
 
           <div className="min-w-0 flex-1">
-            <ProductsFilters
-              initialSearch={query.search ?? ""}
-              categoryId={query.category_id}
-              limit={query.limit}
-              categories={categories}
-            />
-
-            {!products.length ? (
+            {isLoading ? (
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-[24px] border border-slate-200 bg-white p-4"
+                  >
+                    <div className="h-52 animate-pulse rounded-2xl bg-slate-100" />
+                    <div className="mt-4 space-y-2">
+                      <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
+                      <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
+                      <div className="h-6 w-1/3 animate-pulse rounded bg-slate-100" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : !products.length ? (
               <div className="rounded-xl border border-border/60 bg-muted/30 px-6 py-16 text-center">
                 <p className="text-muted-foreground">
                   No products found. Try adjusting your search or filters.
@@ -147,10 +178,10 @@ export default async function ProductsPage({
                   {products.map((product) => {
                     const imageUrl = getPrimaryImageUrl(product);
                     const displayPrice = formatPrice(
-                      product.sale_price_in_rupee,
+                      product.sale_price_in_rupee
                     );
                     const mrpPrice = formatPrice(
-                      Math.round(product.sale_price_in_rupee * 1.5),
+                      Math.round(product.sale_price_in_rupee * 1.5)
                     );
 
                     return (
@@ -161,7 +192,6 @@ export default async function ProductsPage({
                       >
                         <div className="flex h-full flex-col px-4 pt-4 pb-5">
                           <div className="relative rounded-2xl bg-slate-50 p-2">
-                            {/* Product label - top left pill */}
                             {product.product_label && (
                               <div className="pointer-events-none absolute left-3 top-3">
                                 <span className="pointer-events-auto inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-md">
@@ -170,7 +200,6 @@ export default async function ProductsPage({
                               </div>
                             )}
 
-                            {/* Warranty label - bottom right pill */}
                             {product.warranty_label && (
                               <div className="pointer-events-none absolute bottom-3 right-3">
                                 <span className="pointer-events-auto inline-flex items-center rounded-full bg-amber-300 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-slate-900 shadow-md">
@@ -210,20 +239,17 @@ export default async function ProductsPage({
 
                             {product.points?.length > 0 && (
                               <ul className="mt-1 space-y-1">
-                                {product.points
-                                  .slice(0, 3)
-                                  .map((point, index) => (
-                                    <li
-                                      // eslint-disable-next-line react/no-array-index-key
-                                      key={index}
-                                      className="flex items-start gap-1.5 text-[11px] text-slate-500"
-                                    >
-                                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
-                                      <span className="line-clamp-2">
-                                        {point}
-                                      </span>
-                                    </li>
-                                  ))}
+                                {product.points.slice(0, 3).map((point, index) => (
+                                  <li
+                                    key={index}
+                                    className="flex items-start gap-1.5 text-[11px] text-slate-500"
+                                  >
+                                    <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
+                                    <span className="line-clamp-2">
+                                      {point}
+                                    </span>
+                                  </li>
+                                ))}
                               </ul>
                             )}
 
@@ -242,42 +268,19 @@ export default async function ProductsPage({
                   })}
                 </div>
 
-                <nav
-                  className="mt-10 flex items-center justify-center gap-4"
-                  aria-label="Products pagination"
+                <div
+                  ref={loadMoreRef}
+                  className="flex min-h-20 items-center justify-center py-6"
+                  aria-hidden
                 >
-                  {query.offset > 0 ? (
-                    <Link
-                      href={`/products?${buildProductsQueryString(prevQuery)}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                    >
-                      <ChevronLeft className="size-4" />
-                      Previous
-                    </Link>
-                  ) : (
-                    <span className="inline-flex cursor-not-allowed items-center gap-1 rounded-lg border border-border bg-muted/50 px-4 py-2 text-sm font-medium text-muted-foreground">
-                      <ChevronLeft className="size-4" />
-                      Previous
-                    </span>
+                  {isFetchingNextPage && (
+                    <div className="flex gap-2">
+                      <span className="size-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.3s]" />
+                      <span className="size-2 animate-bounce rounded-full bg-slate-400 [animation-delay:-0.15s]" />
+                      <span className="size-2 animate-bounce rounded-full bg-slate-400" />
+                    </div>
                   )}
-                  <span className="text-sm text-muted-foreground">
-                    {query.offset + 1}–{query.offset + products.length}
-                  </span>
-                  {hasNext ? (
-                    <Link
-                      href={`/products?${buildProductsQueryString(nextQuery)}`}
-                      className="inline-flex items-center gap-1 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-                    >
-                      Next
-                      <ChevronRight className="size-4" />
-                    </Link>
-                  ) : (
-                    <span className="inline-flex cursor-not-allowed items-center gap-1 rounded-lg border border-border bg-muted/50 px-4 py-2 text-sm font-medium text-muted-foreground">
-                      Next
-                      <ChevronRight className="size-4" />
-                    </span>
-                  )}
-                </nav>
+                </div>
               </>
             )}
           </div>

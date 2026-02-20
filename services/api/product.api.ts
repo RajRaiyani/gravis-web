@@ -44,6 +44,7 @@ export interface Product {
   product_label?: string | null;
   warranty_label?: string | null;
   is_featured?: boolean;
+  filter_option_ids?: string[];
 }
 
 export const listProducts = async (query: object = {}): Promise<Product[]> => {
