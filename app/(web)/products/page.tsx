@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -19,6 +19,12 @@ import { useInfiniteProducts } from "@/hooks/useInfiniteProducts";
 import { ProductsFilters } from "@/components/pages/products/products-filters";
 import { CategoryFiltersSidebar } from "@/components/pages/products/category-filters-sidebar";
 import { ProductsPageBanner } from "@/components/pages/products/products-page-banner";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 function getPrimaryImageUrl(product: Product): string | null {
   return (
@@ -120,28 +126,64 @@ export default function ProductsPage() {
   }, [query.category_id, banners, defaultBanner]);
 
   const isLoading = productsLoading || categoriesLoading;
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 1023px)");
+    const update = () => setIsMobile(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+
+  const sidebarProps = {
+    categories,
+    currentCategoryId: query.category_id,
+    categoryFilters,
+    selectedOptionIds: query.option_id ?? [],
+    search: query.search,
+  };
+  const sidebarPropsEmbedded = { ...sidebarProps, embedded: true };
 
   return (
     <div className="min-h-screen bg-neutral-100">
       <ProductsPageBanner url={banner.url} alt={banner.alt} />
 
+        <div className="sticky top-22 z-40 bg-transparent mx-2 lg:static lg:py-0">
+        <ProductsFilters
+              initialSearch={query.search ?? ""}
+              categoryId={query.category_id}
+              categories={categories}
+              onOpenFiltersSheet={isMobile ? () => setFiltersOpen(true) : undefined}
+            />
+          </div>
+
       <div className="mx-auto container px-4 md:px-0 lg:px-0">
         <div className="mb-4 lg:mb-6">
-          <ProductsFilters
-            initialSearch={query.search ?? ""}
-            categoryId={query.category_id}
-            categories={categories}
-          />
         </div>
 
+        {/* Bottom sheet: categories + filters (mobile only) */}
+        <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+          <SheetContent
+            side="bottom"
+            className="max-h-[85vh] rounded-t-2xl border-t px-0 pb-0 pt-0"
+            showCloseButton={true}
+          >
+            <SheetHeader className="border-b border-slate-100 px-4 py-3">
+              <SheetTitle className="text-base">Categories & Filters</SheetTitle>
+            </SheetHeader>
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+              <CategoryFiltersSidebar {...sidebarPropsEmbedded} />
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-          <CategoryFiltersSidebar
-            categories={categories}
-            currentCategoryId={query.category_id}
-            categoryFilters={categoryFilters}
-            selectedOptionIds={query.option_id ?? []}
-            search={query.search}
-          />
+          {/* Desktop sidebar – hidden on mobile (shown in sheet) */}
+          <div className="hidden lg:block">
+            <CategoryFiltersSidebar {...sidebarProps} />
+          </div>
 
           <div className="min-w-0 flex-1">
             {isLoading ? (

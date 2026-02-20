@@ -24,7 +24,7 @@ export async function submitProductInquiry(
 
 export interface SubmitContactInquiryPayload {
   name: string;
-  email: string;
+  email?: string;
   phone_number: string;
   message: string;
 }
@@ -50,7 +50,6 @@ export interface SubmitGuestProductInquiryPayload {
   product_id: string;
   message: string;
   name: string;
-  email: string;
   phone_number: string;
   quantity?: number;
 }

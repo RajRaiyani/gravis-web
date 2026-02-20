@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "react-hot-toast";
+import { CheckCircle2 } from "lucide-react";
 import { submitGuestProductInquiry } from "@/services/api/inquiry.api";
 import {
   Dialog,
@@ -31,7 +32,6 @@ const guestEnquirySchema = z.object({
     .trim()
     .min(1, "Name is required")
     .max(255, "Name must be less than 255 characters"),
-  email: z.string().trim().min(1, "Email is required").email("Invalid email address"),
   phone_number: z
     .string()
     .trim()
@@ -40,8 +40,8 @@ const guestEnquirySchema = z.object({
   message: z
     .string()
     .trim()
-    .min(1, "Message is required")
-    .max(1000, "Message must be less than 1000 characters"),
+    .max(1000, "Message must be less than 1000 characters")
+    .optional(),
   quantity: z.union([
     z.string(),
     z.number().int().min(1).max(1000),
@@ -62,12 +62,12 @@ export function AddEnquiryButton({
   className,
 }: AddEnquiryButtonProps) {
   const [open, setOpen] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const form = useForm<GuestEnquiryFormValues>({
     resolver: zodResolver(guestEnquirySchema),
     defaultValues: {
       name: "",
-      email: "",
       phone_number: "",
       message: "",
       quantity: undefined,
@@ -91,21 +91,24 @@ export function AddEnquiryButton({
       await submitGuestProductInquiry({
         product_id: productId,
         name: values.name,
-        email: values.email,
         phone_number: values.phone_number,
-        message: values.message,
+        message: values.message?.trim() ?? "",
         quantity,
       });
-      toast.success("Your product inquiry has been submitted successfully.");
-      setOpen(false);
       reset();
+      setShowSuccess(true);
     } catch {
       toast.error("Failed to submit enquiry. Please try again.");
     }
   }
 
+  function handleClose(open: boolean) {
+    if (!open) setShowSuccess(false);
+    setOpen(open);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogTrigger asChild>
         <button
           type="button"
@@ -116,10 +119,33 @@ export function AddEnquiryButton({
         </button>
       </DialogTrigger>
       <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Enquire about {productName}</DialogTitle>
-        </DialogHeader>
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
+        {showSuccess ? (
+          <div className="flex flex-col items-center justify-center gap-4 py-6 text-center">
+            <div className="flex size-14 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400">
+              <CheckCircle2 className="size-8" aria-hidden />
+            </div>
+            <div className="space-y-1">
+              <h3 className="text-lg font-semibold text-foreground">
+                Message sent successfully
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                We&apos;ll connect with you in the next 24 hours.
+              </p>
+            </div>
+            <Button
+              type="button"
+              onClick={() => handleClose(false)}
+              className="mt-2"
+            >
+              Close
+            </Button>
+          </div>
+        ) : (
+          <>
+            <DialogHeader>
+              <DialogTitle>Enquire about {productName}</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
           <Field data-invalid={!!errors.name}>
             <FieldLabel htmlFor="guest-enquiry-name">
               <FieldTitle>
@@ -134,23 +160,6 @@ export function AddEnquiryButton({
                 {...register("name")}
               />
               <FieldError errors={errors.name ? [errors.name] : undefined} />
-            </FieldContent>
-          </Field>
-          <Field data-invalid={!!errors.email}>
-            <FieldLabel htmlFor="guest-enquiry-email">
-              <FieldTitle>
-                Email <span className="text-destructive">*</span>
-              </FieldTitle>
-            </FieldLabel>
-            <FieldContent>
-              <Input
-                id="guest-enquiry-email"
-                type="email"
-                placeholder="you@example.com"
-                aria-invalid={!!errors.email}
-                {...register("email")}
-              />
-              <FieldError errors={errors.email ? [errors.email] : undefined} />
             </FieldContent>
           </Field>
           <Field data-invalid={!!errors.phone_number}>
@@ -174,9 +183,7 @@ export function AddEnquiryButton({
           </Field>
           <Field data-invalid={!!errors.message}>
             <FieldLabel htmlFor="guest-enquiry-message">
-              <FieldTitle>
-                Message <span className="text-destructive">*</span>
-              </FieldTitle>
+              <FieldTitle>Message (optional)</FieldTitle>
             </FieldLabel>
             <FieldContent>
               <Textarea
@@ -213,13 +220,15 @@ export function AddEnquiryButton({
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleClose(false)}
               disabled={isSubmitting}
             >
               Cancel
             </Button>
           </div>
         </form>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

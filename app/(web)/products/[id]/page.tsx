@@ -42,14 +42,8 @@ export default async function ProductDetailPage({
   const technicalRows = (product.technical_details ?? []).filter(
     (r) => r.label?.trim() || r.value?.trim()
   );
-  const filterRows = (product.filter_options ?? []).map((fo) => ({
-    label: fo.filter_name,
-    value: fo.value,
-  }));
-  const allAttributeRows = [...filterRows, ...technicalRows];
-  const half = Math.ceil(allAttributeRows.length / 2);
-  const specsLeft = allAttributeRows.slice(0, half);
-  const specsRight = allAttributeRows.slice(half);
+  const filterRows = product.filter_options ?? [];
+  const hasSpecs = filterRows.length > 0 || technicalRows.length > 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -229,39 +223,75 @@ export default async function ProductDetailPage({
         )}
       </div>
 
-      {/* ── Specifications / Product details (from filter_options + technical_details, labels from API) ────────── */}
-      {allAttributeRows.length > 0 && (
+      {/* ── Technical Details & Specifications (table format: key-value rows) ────────── */}
+      {hasSpecs && (
         <div className="mx-auto container px-4 py-10 md:px-6 lg:px-8">
-          <div className="grid gap-6 md:grid-cols-2 md:gap-8">
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
-              <h2 className="inline-block text-base font-bold text-primary border-b-2 border-primary pb-0.5">
-                Technical Details
-              </h2>
-              <div className="mt-5 space-y-5">
-                {specsRight.map((row, i) => (
-                  <div key={i}>
-                    <p className="text-sm font-semibold text-foreground">{row.label}</p>
-                    <p className="mt-0.5 text-sm text-muted-foreground">{row.value}</p>
-                  </div>
-                ))}
+          <div
+            className={`grid gap-6 md:gap-8 ${
+              technicalRows.length > 0 && filterRows.length > 0
+                ? "md:grid-cols-2"
+                : "md:grid-cols-1 max-w-2xl"
+            }`}
+          >
+            {/* Technical Details – table */}
+            {technicalRows.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+                <div className="border-b border-border bg-muted/30 px-5 py-3 md:px-6">
+                  <h2 className="text-base font-bold text-primary">
+                    Technical Details
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {technicalRows.map((row, i) => (
+                        <tr
+                          key={i}
+                          className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors"
+                        >
+                          <td className="px-5 py-3 font-medium text-foreground align-top md:px-6">
+                            {row.label}
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground align-top md:px-6">
+                            {row.value}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
-            <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
-              <h2 className="inline-block text-base font-bold text-primary border-b-2 border-primary pb-0.5">
-                Specifications
-              </h2>
-              <div className="mt-5 divide-y divide-border">
-                {specsLeft.map((row, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between py-3 text-sm"
-                  >
-                    <span className="font-medium text-foreground">{row.label}</span>
-                    <span className="text-right text-muted-foreground">{row.value}</span>
-                  </div>
-                ))}
+            )}
+
+            {/* Specifications – table (filter_options) */}
+            {filterRows.length > 0 && (
+              <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+                <div className="border-b border-border bg-muted/30 px-5 py-3 md:px-6">
+                  <h2 className="text-base font-bold text-primary">
+                    Specifications
+                  </h2>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <tbody>
+                      {filterRows.map((row, i) => (
+                        <tr
+                          key={row.filter_option_id ?? i}
+                          className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors"
+                        >
+                          <td className="px-5 py-3 font-medium text-foreground align-top md:px-6">
+                            {row.filter_name}
+                          </td>
+                          <td className="px-5 py-3 text-muted-foreground align-top md:px-6">
+                            {row.value}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

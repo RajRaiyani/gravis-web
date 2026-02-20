@@ -19,6 +19,8 @@ interface ProductsFiltersProps {
   initialSearch: string;
   categoryId: string | undefined;
   categories?: ProductCategory[];
+  /** When provided, filter icon opens this (e.g. bottom sheet) instead of category dropdown. Use on mobile. */
+  onOpenFiltersSheet?: () => void;
 }
 
 function buildSearchUrl(params: {
@@ -45,10 +47,12 @@ export function ProductsFilters({
   initialSearch,
   categoryId,
   categories = [],
+  onOpenFiltersSheet,
 }: ProductsFiltersProps) {
   const router = useRouter();
   const [value, setValue] = useState(initialSearch);
   const hasCategoryFilter = categories.length > 0;
+  const useSheet = Boolean(onOpenFiltersSheet);
 
   // Sync local value when initialSearch changes (e.g. navigation back)
   useEffect(() => {
@@ -88,14 +92,14 @@ export function ProductsFilters({
   );
 
   return (
-    <div className="mb-6 flex flex-row items-center gap-2 rounded-lg border border-primary/60 bg-transparent px-3 py-2">
-      <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+    <div className="group/search relative mb-2 flex flex-row items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm ring-slate-200/50 transition-all duration-200 focus-within:border-[#0046B7] focus-within:ring-2 focus-within:ring-[#0046B7]/20 focus-within:shadow-md">
+      <Search className="size-5 shrink-0 text-slate-400 transition-colors group-focus-within/search:text-[#0046B7]" aria-hidden />
       <input
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Search products..."
-        className="min-w-0 flex-1 bg-transparent py-1.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+        placeholder="Search products by name..."
+        className="min-w-0 flex-1 bg-transparent py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none sm:text-base"
         aria-label="Search products"
         autoComplete="off"
       />
@@ -103,46 +107,65 @@ export function ProductsFilters({
         <button
           type="button"
           onClick={handleClear}
-          className="shrink-0 rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+          className="flex size-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-[#0046B7]/20 focus:ring-offset-2"
           aria-label="Clear search"
         >
           <X className="size-4" />
         </button>
       ) : null}
       {hasCategoryFilter && (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <>
+          <div className="hidden h-6 w-px shrink-0 bg-slate-200 sm:block" aria-hidden />
+          {useSheet ? (
             <Button
               type="button"
               variant="ghost"
               size="icon"
               className={cn(
-                "shrink-0",
-                categoryId ? "text-primary" : "text-muted-foreground"
+                "size-9 shrink-0 rounded-full transition-colors",
+                categoryId ? "bg-[#0046B7]/10 text-[#0046B7]" : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
               )}
-              aria-label="Filter by category"
+              aria-label="Open categories and filters"
+              onClick={onOpenFiltersSheet}
             >
               <SlidersHorizontal className="size-4" />
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="max-h-[min(70vh,20rem)] w-56">
-            <DropdownMenuItem
-              onClick={() => selectCategory(undefined)}
-              className={cn(!categoryId && "bg-accent")}
-            >
-              All categories
-            </DropdownMenuItem>
-            {categories.map((cat) => (
-              <DropdownMenuItem
-                key={cat.id}
-                onClick={() => selectCategory(cat.id)}
-                className={cn(categoryId === cat.id && "bg-accent")}
-              >
-                {cat.name}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "size-9 shrink-0 rounded-full transition-colors",
+                    categoryId ? "bg-[#0046B7]/10 text-[#0046B7]" : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                  )}
+                  aria-label="Filter by category"
+                >
+                  <SlidersHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="max-h-[min(70vh,20rem)] w-56">
+                <DropdownMenuItem
+                  onClick={() => selectCategory(undefined)}
+                  className={cn(!categoryId && "bg-accent")}
+                >
+                  All categories
+                </DropdownMenuItem>
+                {categories.map((cat) => (
+                  <DropdownMenuItem
+                    key={cat.id}
+                    onClick={() => selectCategory(cat.id)}
+                    className={cn(categoryId === cat.id && "bg-accent")}
+                  >
+                    {cat.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </>
       )}
     </div>
   );

@@ -24,6 +24,8 @@ interface CategoryFiltersSidebarProps {
   categoryFilters: CategoryFilterWithOptions[];
   selectedOptionIds: string[];
   search: string | undefined;
+  /** When true (e.g. inside bottom sheet), use full height and no sticky so parent controls scroll */
+  embedded?: boolean;
 }
 
 function buildBaseUrl(params: {
@@ -57,6 +59,7 @@ export function CategoryFiltersSidebar({
   categoryFilters,
   selectedOptionIds,
   search,
+  embedded = false,
 }: CategoryFiltersSidebarProps) {
   const router = useRouter();
   const base = {
@@ -83,11 +86,21 @@ export function CategoryFiltersSidebar({
 
   return (
     <div
-      className="w-full shrink-0 lg:w-72 xl:w-80 lg:sticky lg:top-24 lg:self-start"
+      className={cn(
+        "w-full shrink-0",
+        !embedded && "lg:w-72 xl:w-80 lg:sticky lg:top-24 lg:self-start"
+      )}
       aria-label="Category and filters"
     >
       <aside className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
-        <div className="flex max-h-[85vh] flex-col overflow-y-auto lg:max-h-[calc(100vh-7rem)]">
+        <div
+          className={cn(
+            "flex flex-col",
+            embedded
+              ? "max-h-full overflow-y-auto"
+              : "max-h-[85vh] overflow-y-auto lg:max-h-[calc(100vh-7rem)]"
+          )}
+        >
           {/* Category section */}
           <section
             aria-label="Category filter"
