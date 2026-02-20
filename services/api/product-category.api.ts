@@ -23,19 +23,33 @@ export interface CategoryBanner {
 }
 
 export const listProductCategories = async (): Promise<ProductCategory[]> => {
-  const data = await serverHttpCall({
-    url: "/product-categories",
-    method: "GET",
-  });
-  return Array.isArray(data) ? data : [];
+  try {
+    const data = await serverHttpCall({
+      url: "/product-categories",
+      method: "GET",
+    });
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[listProductCategories] failed:", err);
+    }
+    return [];
+  }
 };
 
 export const listCategoryBanners = async (): Promise<CategoryBanner[]> => {
-  const data = await serverHttpCall({
-    url: "/product-categories/banners",
-    method: "GET",
-  });
-  return Array.isArray(data) ? data : [];
+  try {
+    const data = await serverHttpCall({
+      url: "/product-categories/banners",
+      method: "GET",
+    });
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[listCategoryBanners] failed:", err);
+    }
+    return [];
+  }
 };
 
 /** Filter option (attribute value) for a category filter, e.g. "Samsung", "32 inch" */

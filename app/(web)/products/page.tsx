@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { Suspense, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -62,7 +62,37 @@ function getQueryFromSearchParams(
       };
 }
 
-export default function ProductsPage() {
+function ProductsPageFallback() {
+  return (
+    <div className="min-h-screen bg-neutral-100">
+      <div className="mx-auto container px-4 md:px-6 lg:px-8 py-6">
+        <div className="h-8 max-w-md animate-pulse rounded bg-slate-200 mb-6" />
+        <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+          <div className="hidden lg:block w-72 shrink-0">
+            <div className="h-24 animate-pulse rounded-xl bg-slate-200" />
+          </div>
+          <div className="min-w-0 flex-1 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl border border-slate-200 bg-white p-4"
+              >
+                <div className="h-52 animate-pulse rounded-lg bg-slate-100" />
+                <div className="mt-4 space-y-2">
+                  <div className="h-4 max-w-[85%] animate-pulse rounded bg-slate-100" />
+                  <div className="h-3 max-w-[50%] animate-pulse rounded bg-slate-100" />
+                  <div className="h-6 max-w-[35%] animate-pulse rounded bg-slate-100" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductsPageContent() {
   const searchParams = useSearchParams();
 
   const query = useMemo(
@@ -321,5 +351,13 @@ export default function ProductsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<ProductsPageFallback />}>
+      <ProductsPageContent />
+    </Suspense>
   );
 }
