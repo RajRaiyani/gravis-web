@@ -34,7 +34,7 @@ export default function Header() {
         <div className="flex items-center gap-3 md:gap-6">
           <Link
             href="/contact"
-            className="hidden rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 md:inline-flex md:items-center"
+            className="hidden rounded bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 md:inline-flex md:items-center"
           >
             Contact Us
           </Link>

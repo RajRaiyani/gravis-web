@@ -1,7 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type {
   ProductCategory,
   CategoryFilterWithOptions,
@@ -23,34 +22,8 @@ interface CategoryFiltersSidebarProps {
   currentCategoryId: string | undefined;
   categoryFilters: CategoryFilterWithOptions[];
   selectedOptionIds: string[];
-  search: string | undefined;
   /** When true (e.g. inside bottom sheet), use full height and no sticky so parent controls scroll */
   embedded?: boolean;
-}
-
-function buildBaseUrl(params: {
-  categoryId?: string;
-  search?: string;
-  optionIds?: string[];
-}): string {
-  const sp = new URLSearchParams();
-  if (params.categoryId) sp.set("category_id", params.categoryId);
-  if (params.search) sp.set("search", params.search);
-  if (params.optionIds?.length) {
-    params.optionIds.forEach((id) => sp.append("option_id", id));
-  }
-  return `/products?${sp.toString()}`;
-}
-
-function buildOptionToggleUrl(
-  current: string[],
-  optionId: string,
-  base: { categoryId?: string; search?: string }
-): string {
-  const next = current.includes(optionId)
-    ? current.filter((id) => id !== optionId)
-    : [...current, optionId];
-  return buildBaseUrl({ ...base, optionIds: next.length ? next : undefined });
 }
 
 export function CategoryFiltersSidebar({
@@ -58,47 +31,66 @@ export function CategoryFiltersSidebar({
   currentCategoryId,
   categoryFilters,
   selectedOptionIds,
-  search,
   embedded = false,
 }: CategoryFiltersSidebarProps) {
   const router = useRouter();
-  const base = {
-    categoryId: currentCategoryId,
-    search,
-  };
+  const searchParams = useSearchParams();
+  const pathName = usePathname();
 
   const categoryValue = currentCategoryId ?? ALL_CATEGORIES_VALUE;
+
   const hasActiveFilters = selectedOptionIds.length > 0;
-  const clearFiltersUrl = buildBaseUrl({ categoryId: currentCategoryId, search });
+
+  function clearFilters() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("option_ids");
+    router.replace(`${pathName}?${params.toString()}`, { scroll: false });
+  }
 
   const onCategoryChange = (value: string) => {
-    const categoryId = value === ALL_CATEGORIES_VALUE ? undefined : value;
-    const url = buildBaseUrl({ categoryId, search });
-    router.replace(url, { scroll: false });
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (value === ALL_CATEGORIES_VALUE) {
+      params.delete("category_id");
+    } else {
+      params.set("category_id", value);
+    }
+    params.delete("option_ids");
+    router.replace(`${pathName}?${params.toString()}`, { scroll: false });
   };
 
-  const onFilterOptionClick = useCallback(
-    (url: string) => {
-      router.replace(url, { scroll: false });
-    },
-    [router]
-  );
+  function onOptionClick(optionId: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    const optionIdsParams = params.getAll("option_ids");
+    debugger;
+    const optionIds = optionIdsParams.length ? optionIdsParams : [];
+
+    if (optionIds.includes(optionId)) {
+      params.delete("option_ids");
+      optionIds
+        .filter((id) => id !== optionId)
+        .forEach((id) => params.append("option_ids", id));
+    } else {
+      params.append("option_ids", optionId);
+    }
+    router.replace(`${pathName}?${params.toString()}`, { scroll: false });
+  }
 
   return (
     <div
       className={cn(
         "w-full shrink-0",
-        !embedded && "lg:w-72 xl:w-80 lg:sticky lg:top-24 lg:self-start"
+        !embedded && "lg:w-72 xl:w-80 lg:sticky lg:top-24 lg:self-start",
       )}
       aria-label="Category and filters"
     >
-      <aside className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
+      <aside className="overflow-hidden rounded-md border border-slate-200/80 bg-white shadow-sm ring-1 ring-slate-900/5">
         <div
           className={cn(
             "flex flex-col",
             embedded
               ? "max-h-full overflow-y-auto"
-              : "max-h-[85vh] overflow-y-auto lg:max-h-[calc(100vh-7rem)]"
+              : "max-h-[85vh] overflow-y-auto lg:max-h-[calc(100vh-7rem)]",
           )}
         >
           {/* Category section */}
@@ -107,9 +99,9 @@ export function CategoryFiltersSidebar({
             className="border-b border-slate-100 bg-slate-50/80 px-4 py-4"
           >
             <div className="mb-2.5 flex items-center gap-2">
-              <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
                 Category
-              </h2>
+              </h3>
             </div>
             <Select value={categoryValue} onValueChange={onCategoryChange}>
               <SelectTrigger
@@ -133,7 +125,7 @@ export function CategoryFiltersSidebar({
 
           {/* Filters section */}
           {currentCategoryId && (
-            <section aria-label="Filters" className="flex flex-1 flex-col px-4 py-4">
+            <section aria-label="Filters" className="flex flex-1 flex-col p-6">
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-slate-100 text-slate-600">
@@ -151,10 +143,10 @@ export function CategoryFiltersSidebar({
                 {hasActiveFilters && (
                   <button
                     type="button"
-                    onClick={() => router.replace(clearFiltersUrl, { scroll: false })}
-                    className="flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                    onClick={clearFilters}
+                    className="flex items-center gap-1 rounded-md px-2 py-1 text-md font-medium text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
                   >
-                    <X className="size-3.5" />
+                    <X className="size-5" />
                     Clear
                   </button>
                 )}
@@ -165,33 +157,28 @@ export function CategoryFiltersSidebar({
                   No filters for this category.
                 </p>
               ) : (
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col py-4 gap-4">
                   {categoryFilters.map((filter) => (
-                    <div
-                      key={filter.id}
-                      className="rounded-xl border border-slate-100 bg-slate-50/50 p-3"
-                    >
-                      <h3 className="mb-2.5 text-sm font-semibold text-slate-800">
+                    <div key={filter.id} className="">
+                      <h3 className="mb-2.5 uppercase text-sm font-semibold text-slate-800">
                         {filter.name}
                       </h3>
                       <ul className="flex flex-col gap-0.5">
                         {filter.options.map((option) => {
-                          const isChecked = selectedOptionIds.includes(option.id);
-                          const toggleUrl = buildOptionToggleUrl(
-                            selectedOptionIds,
+                          const isChecked = selectedOptionIds.includes(
                             option.id,
-                            base
                           );
+
                           return (
                             <li key={option.id}>
                               <button
                                 type="button"
-                                onClick={() => onFilterOptionClick(toggleUrl)}
+                                onClick={() => onOptionClick(option.id)}
                                 className={cn(
                                   "flex w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
                                   isChecked
                                     ? "text-[#0046B7]"
-                                    : "text-slate-700 hover:bg-slate-100/80"
+                                    : "text-slate-700 hover:bg-slate-100/80",
                                 )}
                               >
                                 <span
@@ -199,7 +186,7 @@ export function CategoryFiltersSidebar({
                                     "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border-2 transition-colors",
                                     isChecked
                                       ? "border-[#0046B7] bg-[#0046B7] text-white"
-                                      : "border-slate-300 bg-white"
+                                      : "border-slate-300 bg-white",
                                   )}
                                   aria-hidden
                                 >
@@ -219,7 +206,9 @@ export function CategoryFiltersSidebar({
                                     </svg>
                                   ) : null}
                                 </span>
-                                <span className="font-medium">{option.value}</span>
+                                <span className="font-medium">
+                                  {option.value}
+                                </span>
                               </button>
                             </li>
                           );

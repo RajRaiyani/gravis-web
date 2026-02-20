@@ -26,7 +26,7 @@ export const productListQuerySchema = z.object({
     ),
   search: z.string().trim().toLowerCase().optional(),
   /** Filter by these filter-option IDs (product must match selected options). */
-  option_id: optionIdArray,
+  option_ids: optionIdArray,
 });
 
 export type ProductListQuery = z.infer<typeof productListQuerySchema>;

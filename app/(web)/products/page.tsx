@@ -44,13 +44,13 @@ function formatPrice(rupee: number): string {
 }
 
 function getQueryFromSearchParams(
-  searchParams: ReturnType<typeof useSearchParams>
+  searchParams: ReturnType<typeof useSearchParams>,
 ): ProductListQuery {
-  const optionIds = searchParams.getAll("option_id");
+  const optionIds = searchParams.getAll("option_ids");
   const raw: Record<string, string | string[]> = {
     category_id: searchParams.get("category_id") ?? "",
     search: searchParams.get("search") ?? "",
-    option_id: optionIds.length ? optionIds : [],
+    option_ids: optionIds.length ? optionIds : [],
   };
   const parsed = productListQuerySchema.safeParse(raw);
   return parsed.success
@@ -58,7 +58,7 @@ function getQueryFromSearchParams(
     : {
         category_id: undefined,
         search: undefined,
-        option_id: [],
+        option_ids: [],
       };
 }
 
@@ -67,14 +67,14 @@ export default function ProductsPage() {
 
   const query = useMemo(
     () => getQueryFromSearchParams(searchParams),
-    [searchParams]
+    [searchParams],
   );
 
   const filterParams = useMemo(() => {
     const p: Record<string, string | number | string[]> = {};
     if (query.category_id) p.category_id = query.category_id;
     if (query.search) p.search = query.search;
-    if (query.option_id?.length) p.option_id = query.option_id;
+    if (query.option_ids?.length) p.option_ids = query.option_ids;
     return p;
   }, [query]);
 
@@ -109,13 +109,13 @@ export default function ProductsPage() {
       url: "/images/pages/home/hero-banner-1.png",
       alt: "Gravis promotional banner",
     }),
-    []
+    [],
   );
 
   const banner = useMemo(() => {
     if (!query.category_id) return defaultBanner;
     const categoryBanner = banners.find(
-      (b) => b.id === query.category_id && b.banner_image?.url
+      (b) => b.id === query.category_id && b.banner_image?.url,
     );
     return categoryBanner
       ? {
@@ -127,21 +127,12 @@ export default function ProductsPage() {
 
   const isLoading = productsLoading || categoriesLoading;
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const mql = window.matchMedia("(max-width: 1023px)");
-    const update = () => setIsMobile(mql.matches);
-    update();
-    mql.addEventListener("change", update);
-    return () => mql.removeEventListener("change", update);
-  }, []);
 
   const sidebarProps = {
     categories,
     currentCategoryId: query.category_id,
     categoryFilters,
-    selectedOptionIds: query.option_id ?? [],
+    selectedOptionIds: query.option_ids ?? [],
     search: query.search,
   };
   const sidebarPropsEmbedded = { ...sidebarProps, embedded: true };
@@ -150,18 +141,12 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-neutral-100">
       <ProductsPageBanner url={banner.url} alt={banner.alt} />
 
-        <div className="sticky top-22 z-40 bg-transparent mx-2 lg:static lg:py-0">
-        <ProductsFilters
-              initialSearch={query.search ?? ""}
-              categoryId={query.category_id}
-              categories={categories}
-              onOpenFiltersSheet={isMobile ? () => setFiltersOpen(true) : undefined}
-            />
-          </div>
+      <div className="sticky lg:hidden top-22 z-40 md:container md:mx-auto mt-4 bg-transparent mx-2 lg:py-0">
+        <ProductsFilters />
+      </div>
 
       <div className="mx-auto container px-4 md:px-0 lg:px-0">
-        <div className="mb-4 lg:mb-6">
-        </div>
+        <div className="mb-4 lg:mb-6"></div>
 
         {/* Bottom sheet: categories + filters (mobile only) */}
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
@@ -171,7 +156,9 @@ export default function ProductsPage() {
             showCloseButton={true}
           >
             <SheetHeader className="border-b border-slate-100 px-4 py-3">
-              <SheetTitle className="text-base">Categories & Filters</SheetTitle>
+              <SheetTitle className="text-base">
+                Categories & Filters
+              </SheetTitle>
             </SheetHeader>
             <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
               <CategoryFiltersSidebar {...sidebarPropsEmbedded} />
@@ -191,9 +178,9 @@ export default function ProductsPage() {
                 {Array.from({ length: 6 }).map((_, i) => (
                   <div
                     key={i}
-                    className="rounded-[24px] border border-slate-200 bg-white p-4"
+                    className="rounded-xl border border-slate-200 bg-white p-4"
                   >
-                    <div className="h-52 animate-pulse rounded-2xl bg-slate-100" />
+                    <div className="h-52 animate-pulse rounded-lg bg-slate-100" />
                     <div className="mt-4 space-y-2">
                       <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
                       <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
@@ -215,25 +202,28 @@ export default function ProductsPage() {
                 </Link>
               </div>
             ) : (
-              <>
+              <div className="w-full flex flex-col gap-4">
+                <div className="hidden lg:block lg:static top-28 z-40 w-full bg-transparent">
+                  <ProductsFilters />
+                </div>
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                   {products.map((product) => {
                     const imageUrl = getPrimaryImageUrl(product);
                     const displayPrice = formatPrice(
-                      product.sale_price_in_rupee
+                      product.sale_price_in_rupee,
                     );
                     const mrpPrice = formatPrice(
-                      Math.round(product.sale_price_in_rupee * 1.5)
+                      Math.round(product.sale_price_in_rupee * 1.5),
                     );
 
                     return (
                       <Link
                         key={product.id}
                         href={`/products/${product.id}`}
-                        className="group block rounded-[24px] border border-slate-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#0046B7] hover:shadow-md"
+                        className="group block rounded-md border border-slate-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#0046B7] hover:shadow-md"
                       >
                         <div className="flex h-full flex-col px-4 pt-4 pb-5">
-                          <div className="relative rounded-2xl bg-slate-50 p-2">
+                          <div className="relative rounded-md bg-slate-50 p-2">
                             {product.product_label && (
                               <div className="pointer-events-none absolute left-3 top-3">
                                 <span className="pointer-events-auto inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-md">
@@ -281,17 +271,19 @@ export default function ProductsPage() {
 
                             {product.points?.length > 0 && (
                               <ul className="mt-1 space-y-1">
-                                {product.points.slice(0, 3).map((point, index) => (
-                                  <li
-                                    key={index}
-                                    className="flex items-start gap-1.5 text-[11px] text-slate-500"
-                                  >
-                                    <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
-                                    <span className="line-clamp-2">
-                                      {point}
-                                    </span>
-                                  </li>
-                                ))}
+                                {product.points
+                                  .slice(0, 3)
+                                  .map((point, index) => (
+                                    <li
+                                      key={index}
+                                      className="flex items-start gap-1.5 text-[11px] text-slate-500"
+                                    >
+                                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
+                                      <span className="line-clamp-2">
+                                        {point}
+                                      </span>
+                                    </li>
+                                  ))}
                               </ul>
                             )}
 
@@ -323,7 +315,7 @@ export default function ProductsPage() {
                     </div>
                   )}
                 </div>
-              </>
+              </div>
             )}
           </div>
         </div>
