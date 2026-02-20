@@ -3,8 +3,7 @@ import { notFound } from "next/navigation";
 import { getProduct } from "@/services/api/product.api";
 import type { Product } from "@/services/api/product.api";
 import { ProductImageGallery } from "@/components/pages/products/product-image-gallery";
-import { AddToCartButton } from "@/components/pages/products/add-to-cart-button";
-import { EnquireNowButton } from "@/components/pages/products/enquire-now-button";
+import { AddEnquiryButton } from "@/components/pages/products/add-enquiry-button";
 import { ChevronRight, Star, Truck, RefreshCcw, Gift } from "lucide-react";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -153,17 +152,22 @@ export default async function ProductDetailPage({
 
             {/* Block 2: CTA buttons */}
             <div className="flex gap-3 border-b border-border px-5 py-4 md:px-6">
-              <AddToCartButton
+              {/* <AddToCartButton
                 productId={product.id}
                 productName={product.name}
                 className="flex-1 inline-flex items-center justify-center rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-              />
-              <EnquireNowButton
+              /> */}
+              {/* <EnquireNowButton
                 productId={product.id}
                 productName={product.name}
                 hasPendingInquiry={product.has_pending_inquiry}
                 disabled={product.has_pending_inquiry}
                 className="flex-1 inline-flex items-center justify-center rounded-xl bg-[#1e2d4a] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#253660] disabled:cursor-not-allowed disabled:opacity-60"
+              /> */}
+              <AddEnquiryButton
+                productId={product.id}
+                productName={product.name}
+                className="flex-1 inline-flex items-center justify-center rounded-xl bg-[#1e2d4a] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#253660]"
               />
             </div>
 

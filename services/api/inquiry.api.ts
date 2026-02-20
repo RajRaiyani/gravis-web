@@ -44,3 +44,29 @@ export async function submitContactInquiry(
   });
   return response as unknown as ContactInquiryResponse;
 }
+
+/** Guest product inquiry (no auth). Matches backend POST /inquiry/guest-product */
+export interface SubmitGuestProductInquiryPayload {
+  product_id: string;
+  message: string;
+  name: string;
+  email: string;
+  phone_number: string;
+  quantity?: number;
+}
+
+export interface GuestProductInquiryResponse {
+  inquiry: unknown;
+  message: string;
+}
+
+export async function submitGuestProductInquiry(
+  payload: SubmitGuestProductInquiryPayload
+): Promise<GuestProductInquiryResponse> {
+  const response = await httpCall({
+    method: "POST",
+    url: "/inquiry/guest-product",
+    data: payload,
+  });
+  return response as unknown as GuestProductInquiryResponse;
+}
