@@ -1,7 +1,6 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -9,7 +8,7 @@ import {
   productListQuerySchema,
   type ProductListQuery,
 } from "@/lib/product-query-schema";
-import type { Product } from "@/services/api/product.api";
+import { ProductCard } from "@/components/shared/product-card";
 import {
   listProductCategoriesClient,
   listCategoryBannersClient,
@@ -24,24 +23,9 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetClose,
 } from "@/components/ui/sheet";
-
-function getPrimaryImageUrl(product: Product): string | null {
-  return (
-    product.primary_image?.url ??
-    product.images?.find((i) => i.is_primary)?.image?.url ??
-    product.images?.[0]?.image?.url ??
-    null
-  );
-}
-
-function formatPrice(rupee: number): string {
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(rupee);
-}
+import { XIcon } from "lucide-react";
 
 function getQueryFromSearchParams(
   searchParams: ReturnType<typeof useSearchParams>,
@@ -171,28 +155,34 @@ function ProductsPageContent() {
     <div className="min-h-screen bg-neutral-100">
       <ProductsPageBanner url={banner.url} alt={banner.alt} />
 
-      <div className="sticky lg:hidden top-22 z-40 md:container md:mx-auto mt-4 bg-transparent mx-2 lg:py-0">
-        <ProductsFilters />
+      <div className="sticky top-22 z-40 lg:hidden bg-transparent">
+        <div className="mx-2 mt-4 md:container md:mx-auto lg:py-0">
+          <ProductsFilters onOpenFilters={() => setFiltersOpen(true)} />
+        </div>
       </div>
 
-      <div className="mx-auto container px-4 md:px-0 lg:px-0">
+      <div className="mx-auto container px-2 md:px-0 lg:px-0">
         <div className="mb-4 lg:mb-6"></div>
 
         {/* Bottom sheet: categories + filters (mobile only) */}
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
           <SheetContent
-            side="bottom"
-            className="max-h-[85vh] rounded-t-2xl border-t px-0 pb-0 pt-0"
-            showCloseButton={true}
+            side="right"
+            className="rounded-md p-2 w-full"
+            showCloseButton={false}
           >
             <SheetHeader className="border-b border-slate-100 px-4 py-3">
               <SheetTitle className="text-base">
                 Categories & Filters
               </SheetTitle>
+              <SheetClose asChild>
+                <button type="button" className="absolute top-4 right-4">
+                  <XIcon className="size-6" />
+                </button>
+              </SheetClose>
             </SheetHeader>
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-              <CategoryFiltersSidebar {...sidebarPropsEmbedded} />
-            </div>
+
+            <CategoryFiltersSidebar {...sidebarPropsEmbedded} />
           </SheetContent>
         </Sheet>
 
@@ -236,100 +226,10 @@ function ProductsPageContent() {
                 <div className="hidden lg:block lg:static top-28 z-40 w-full bg-transparent">
                   <ProductsFilters />
                 </div>
-                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {products.map((product) => {
-                    const imageUrl = getPrimaryImageUrl(product);
-                    const displayPrice = formatPrice(
-                      product.sale_price_in_rupee,
-                    );
-                    const mrpPrice = formatPrice(
-                      Math.round(product.sale_price_in_rupee * 1.5),
-                    );
-
-                    return (
-                      <Link
-                        key={product.id}
-                        href={`/products/${product.id}`}
-                        className="group block rounded-md border border-slate-200 bg-white text-left shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#0046B7] hover:shadow-md"
-                      >
-                        <div className="flex h-full flex-col px-4 pt-4 pb-5">
-                          <div className="relative rounded-md bg-slate-50 p-2">
-                            {product.product_label && (
-                              <div className="pointer-events-none absolute left-3 top-3">
-                                <span className="pointer-events-auto inline-flex items-center rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold text-white shadow-md">
-                                  {product.product_label}
-                                </span>
-                              </div>
-                            )}
-
-                            {product.warranty_label && (
-                              <div className="pointer-events-none absolute bottom-3 right-3">
-                                <span className="warranty-flag text-nowrap">
-                                  {product.warranty_label}
-                                </span>
-                              </div>
-                            )}
-
-                            <div className="flex h-52 items-center justify-center">
-                              {imageUrl ? (
-                                <Image
-                                  src={imageUrl}
-                                  alt={product.name}
-                                  width={320}
-                                  height={260}
-                                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                                  className="size-52 w-auto object-contain"
-                                  unoptimized={imageUrl.startsWith("http://")}
-                                />
-                              ) : (
-                                <div className="flex h-48 w-full items-center justify-center rounded-xl bg-slate-100 text-slate-400">
-                                  <span>No image</span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="mt-4 space-y-2">
-                            <p className="line-clamp-2 text-sm font-semibold text-slate-800 group-hover:text-[#0046B7]">
-                              {product.name}
-                            </p>
-                            {product.category?.name && (
-                              <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                                {product.category.name}
-                              </p>
-                            )}
-
-                            {product.points?.length > 0 && (
-                              <ul className="mt-1 space-y-1">
-                                {product.points
-                                  .slice(0, 3)
-                                  .map((point, index) => (
-                                    <li
-                                      key={index}
-                                      className="flex items-start gap-1.5 text-[11px] text-slate-500"
-                                    >
-                                      <span className="mt-1 h-1 w-1 shrink-0 rounded-full bg-[#0046B7]" />
-                                      <span className="line-clamp-2">
-                                        {point}
-                                      </span>
-                                    </li>
-                                  ))}
-                              </ul>
-                            )}
-
-                            <div className="flex items-center gap-2 pt-1">
-                              <span className="text-lg font-extrabold text-slate-900">
-                                {displayPrice}
-                              </span>
-                              <span className="text-xs text-slate-400 line-through">
-                                {mrpPrice}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
+                <div className="grid grid-cols-2 gap-1 sm:gap-2 lg:gap-3 md:gap-4 md:grid-cols-3 lg:grid-cols-4">
+                  {products.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
                 </div>
 
                 <div

@@ -62,22 +62,22 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
     <div className="relative">
       <div
         ref={scrollRef}
-        className="flex gap-6 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory px-1 scrollbar-hide md:gap-7"
+        className="flex gap-6 overflow-x-auto py-4 scroll-smooth snap-x snap-mandatory scrollbar-hide"
       >
         {categories.map((category) => (
           <Link
             key={category.id}
             href={`/products?category_id=${category.id}`}
-            className="block min-w-[220px] snap-center rounded-xl border border-slate-200 bg-white px-8 py-7 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-[#0046B7] hover:shadow-md"
+            className="block space-y-3 min-w-[220px] snap-center rounded-lg hover:scale-105 transition-all duration-300 "
           >
-            <div className="flex w-full items-center justify-center">
+            <div className="flex w-full p-2 items-center justify-center">
               {category.image?.url ? (
                 <Image
                   src={category.image.url}
                   alt={category.name}
                   width={200}
                   height={200}
-                  className="size-40 object-contain"
+                  className="object-contain rounded-xl"
                   unoptimized={category.image.url.startsWith("http://")}
                 />
               ) : (
@@ -86,9 +86,9 @@ export function CategoryCarousel({ categories }: CategoryCarouselProps) {
                 </div>
               )}
             </div>
-            <div className="mt-4 flex flex-col items-center">
-              <span className="mb-2 h-[1px] w-10 bg-slate-300" />
-              <p className="line-clamp-2 text-sm font-semibold text-slate-700">
+            <div className="h-1 bg-slate-200 mx-auto w-10 rounded-full"></div>
+            <div className=" flex flex-col items-center">
+              <p className="line-clamp-2 text-sm font-extrabold">
                 {category.name}
               </p>
             </div>
