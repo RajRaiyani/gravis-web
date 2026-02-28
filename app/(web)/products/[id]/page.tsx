@@ -12,6 +12,7 @@ import {
   ShieldCheck,
   MessageCircle,
 } from "lucide-react";
+import { CircleCheckBig } from "lucide-react";
 import Constants from "@/config/constant";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -52,6 +53,14 @@ export default async function ProductDetailPage({
   );
   const filterRows = product.filter_options ?? [];
   const hasSpecs = filterRows.length > 0 || technicalRows.length > 0;
+  const primarySpecs = [
+    ...technicalRows.map((row) => ({
+      label: row.label,
+      value: row.value,
+    })),
+  ]
+    .filter((row) => row.label?.trim() && row.value?.trim())
+    .slice(0, 4);
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,13 +106,6 @@ export default async function ProductDetailPage({
           <div className="flex flex-col gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm">
             {/* Block 1: Status + title + meta + price */}
             <div className="flex flex-col gap-3 border-b border-border p-4 sm:rounded-2xl sm:p-5 md:p-6">
-              {/* In Stock */}
-              <div>
-                <span className="inline-flex items-center rounded-md border border-green-300 bg-green-50 px-2.5 py-0.5 text-xs font-semibold text-green-700">
-                  In Stock
-                </span>
-              </div>
-
               {/* Title */}
               <h1 className="text-base font-semibold leading-snug text-foreground sm:text-[17px] md:text-lg">
                 {product.name}
@@ -125,13 +127,41 @@ export default async function ProductDetailPage({
                   </span>
                 </div>
               )}
-
-              {/* Special Price pill */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
-                  ★ Special Price
-                </span>
-              </div>
+              {primarySpecs.length > 0 && (
+                <div className="">
+                  <dl className="my-4 grid grid-cols-2 gap-x-8 gap-y-4 text-sm sm:grid-cols-3">
+                    {primarySpecs.map((spec, index) => (
+                      <div key={index} className="flex flex-col">
+                        <dt className="text-base font-semibold text-foreground">
+                          {spec.value}
+                        </dt>
+                        <dd className="mt-1 text-[12px] text-muted-foreground">
+                          {spec.label}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+              {/* Block 3: Bullet highlights + key specifications */}
+              {(product.points && product.points.length > 0) ||
+              primarySpecs.length > 0 ? (
+                <div className="space-y-3">
+                  {product.points && product.points.length > 0 && (
+                    <ul className="space-y-2.5">
+                      {product.points.map((point, i) => (
+                        <li
+                          key={i}
+                          className="flex items-start gap-2 text-md font-bold leading-relaxed"
+                        >
+                          <CircleCheckBig className="size-5 text-green-600" />
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : null}
 
               {/* Price */}
               <div className="flex items-baseline gap-2 sm:gap-3">
@@ -154,43 +184,6 @@ export default async function ProductDetailPage({
                 ))}
               </div>
 
-              {/* Perks: Shipping, Returns, Warranty */}
-              <div className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-border bg-muted/20 sm:grid-cols-3 sm:gap-0">
-                <div
-                  className="flex min-w-0 items-center justify-center gap-2.5 px-3 py-3 sm:px-4 sm:py-3.5"
-                  title="Free Shipping"
-                >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Truck className="size-4" aria-hidden />
-                  </span>
-                  <span className="truncate text-xs font-semibold text-foreground">
-                    Free Shipping
-                  </span>
-                </div>
-                <div
-                  className="flex min-w-0 items-center justify-center gap-2.5 border-t border-border px-3 py-3 sm:border-x sm:border-t-0 sm:px-4 sm:py-3.5"
-                  title="Easy Returns"
-                >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <RefreshCcw className="size-4" aria-hidden />
-                  </span>
-                  <span className="truncate text-xs font-semibold text-foreground">
-                    Easy Returns
-                  </span>
-                </div>
-                <div
-                  className="flex min-w-0 items-center justify-center gap-2.5 border-t border-border px-3 py-3 sm:border-t-0 sm:px-4 sm:py-3.5"
-                  title={product.warranty_label ?? "Warranty"}
-                >
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400">
-                    <ShieldCheck className="size-4" aria-hidden />
-                  </span>
-                  <span className="truncate text-xs font-semibold text-foreground">
-                    {product.warranty_label?.trim() || "Warranty"}
-                  </span>
-                </div>
-              </div>
-
               {/* Tags */}
               {product.tags && product.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1.5">
@@ -208,13 +201,8 @@ export default async function ProductDetailPage({
 
             {/* Block 2: CTA buttons */}
             <div className="flex flex-col gap-3 border-b border-border px-4 py-4 sm:flex-row sm:px-5 md:px-6">
-              <AddEnquiryButton
-                productId={product.id}
-                productName={product.name}
-                className="flex-1 inline-flex items-center justify-center rounded-xl bg-[#1e2d4a] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#253660]"
-              />
               <a
-                href={`https://wa.me/91${Constants.contact_details.phoneNumber}?text=${encodeURIComponent(
+                href={`https://wa.me/91${Constants.contact_details.technicalSupportPhoneNumber}?text=${encodeURIComponent(
                   `I have an enquiry about ${product.name} \n https://gravisindia.com/products/${product.id}`,
                 )}`}
                 target="_blank"
@@ -224,26 +212,12 @@ export default async function ProductDetailPage({
                 <MessageCircle className="size-4" aria-hidden />
                 <span>WhatsApp Enquiry</span>
               </a>
+              <AddEnquiryButton
+                productId={product.id}
+                productName={product.name}
+                className="flex-1 inline-flex items-center justify-center rounded-xl bg-[#1e2d4a] px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[#253660]"
+              />
             </div>
-
-            {/* Block 3: Bullet highlights (rounded box) */}
-            {product.points && product.points.length > 0 && (
-              <div className="m-4 rounded-2xl border border-border bg-muted/20 p-4 sm:m-5 md:p-5">
-                <ul className="space-y-2.5">
-                  {product.points.map((point, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm text-foreground leading-relaxed"
-                    >
-                      <span className="mt-1 shrink-0 text-foreground/60">
-                        •
-                      </span>
-                      <span>{point}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         </div>
 

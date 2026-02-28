@@ -25,7 +25,7 @@ export default function Header() {
             />
           </Link>
           <span className="hidden border-l border-slate-200 pl-3 text-xs font-medium text-[#0046B7] md:inline">
-            &quot; Powering Your World, Reliably &quot;
+            &quot; Your Trust is our Trademark &quot;
           </span>
         </div>
 
