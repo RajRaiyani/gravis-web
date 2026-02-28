@@ -20,20 +20,34 @@ export function ProductsFilters({
   const searchParams = useSearchParams();
   const pathName = usePathname();
   const router = useRouter();
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(searchParams.get("search"));
 
   const debouncedValue = useDebounce(value, DEBOUNCE_MS);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
-    if (debouncedValue === (searchParams.get("search") ?? "")) return;
-    if (!debouncedValue && debouncedValue === "") {
-      params.delete("search");
+    const currentSearch = params.get("search") ?? null;
+    const newSearch =
+      debouncedValue !== undefined &&
+      debouncedValue !== null &&
+      debouncedValue !== ""
+        ? String(debouncedValue).trim()
+        : null;
+
+    if (currentSearch === newSearch) return;
+
+    if (newSearch !== null) {
+      params.set("search", newSearch);
     } else {
-      params.set("search", debouncedValue);
+      params.delete("search");
     }
-    router.replace(`${pathName}?${params.toString()}`, { scroll: false });
-  }, [debouncedValue, pathName, router, searchParams]);
+    const query = params.toString();
+    router.replace(query ? `${pathName}?${query}` : pathName, {
+      scroll: false,
+    });
+    // Intentionally omit searchParams to avoid loop: updating URL would change searchParams and re-run this effect
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedValue, pathName, router]);
 
   return (
     <div className={cn("flex w-full items-stretch gap-2", className)}>
@@ -48,7 +62,7 @@ export function ProductsFilters({
         />
         <input
           type="search"
-          value={value}
+          value={value ?? ""}
           onChange={(e) => setValue(e.target.value)}
           placeholder="Search products by name..."
           className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none sm:text-base"

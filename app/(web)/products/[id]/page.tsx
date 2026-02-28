@@ -4,14 +4,7 @@ import { getProduct } from "@/services/api/product.api";
 import type { Product } from "@/services/api/product.api";
 import { ProductImageGallery } from "@/components/pages/products/product-image-gallery";
 import { AddEnquiryButton } from "@/components/pages/products/add-enquiry-button";
-import {
-  ChevronRight,
-  Star,
-  Truck,
-  RefreshCcw,
-  ShieldCheck,
-  MessageCircle,
-} from "lucide-react";
+import { ChevronRight, Star, MessageCircle, ShieldCheck } from "lucide-react";
 import { CircleCheckBig } from "lucide-react";
 import Constants from "@/config/constant";
 
@@ -53,14 +46,12 @@ export default async function ProductDetailPage({
   );
   const filterRows = product.filter_options ?? [];
   const hasSpecs = filterRows.length > 0 || technicalRows.length > 0;
-  const primarySpecs = [
-    ...technicalRows.map((row) => ({
+  const primarySpecs = technicalRows
+    .map((row) => ({
       label: row.label,
       value: row.value,
-    })),
-  ]
-    .filter((row) => row.label?.trim() && row.value?.trim())
-    .slice(0, 4);
+    }))
+    .filter((row) => row.label?.trim() && row.value?.trim());
 
   return (
     <div className="min-h-screen bg-background">
@@ -88,14 +79,8 @@ export default async function ProductDetailPage({
 
         {/* ── Main two-column grid ─────────────────────────────────── */}
         <div className="grid gap-4 md:gap-5 lg:grid-cols-[1fr_1fr] lg:gap-6 xl:grid-cols-[45fr_55fr]">
-          {/* ── LEFT: Image panel (rounded box with badges from API) ────────── */}
+          {/* ── LEFT: Image panel ───────────────────────────────────── */}
           <div className="relative rounded-2xl border border-border bg-card p-3 shadow-sm sm:p-4 md:p-5">
-            {product.product_label != null &&
-              product.product_label.trim() !== "" && (
-                <span className="absolute left-6 top-6 z-10 rounded-md border border-border bg-muted/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-foreground shadow-sm md:left-7 md:top-7">
-                  {product.product_label}
-                </span>
-              )}
             <ProductImageGallery
               images={imageUrls}
               productName={product.name}
@@ -106,10 +91,20 @@ export default async function ProductDetailPage({
           <div className="flex flex-col gap-0 overflow-hidden rounded-2xl border-border bg-card shadow-sm">
             {/* Block 1: Status + title + meta + price */}
             <div className="flex flex-col gap-3 border-b border-border p-4 sm:rounded-2xl sm:p-5 md:p-6">
-              {/* Title */}
-              <h1 className="text-base font-semibold leading-snug text-foreground sm:text-[17px] md:text-lg">
-                {product.name}
-              </h1>
+              {/* Title + product label row */}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h1 className="text-base font-semibold leading-snug text-foreground sm:text-[17px] md:text-lg">
+                  {product.name}
+                </h1>
+
+                {product.product_label?.trim() && (
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-primary sm:text-xs">
+                      {product.product_label}
+                    </span>
+                  </div>
+                )}
+              </div>
 
               {/* Category row */}
               {product.category && (
@@ -163,11 +158,17 @@ export default async function ProductDetailPage({
                 </div>
               ) : null}
 
-              {/* Price */}
-              <div className="flex items-baseline gap-2 sm:gap-3">
+              {/* Price + warranty label */}
+              <div className="flex mt-2 flex-wrap items-baseline gap-x-3 gap-y-2">
                 <span className="text-2xl font-extrabold text-foreground sm:text-3xl">
                   {formatPrice(product.sale_price_in_rupee)}
                 </span>
+                {product.warranty_label?.trim() && (
+                  <span className="ml-auto inline-flex items-center gap-2 rounded-full border border-primary bg-primary/90 px-4 py-1.5 text-sm font-semibold uppercase tracking-wide text-white shadow-sm sm:text-md">
+                    <ShieldCheck className="size-5 shrink-0" aria-hidden />
+                    {product.warranty_label}
+                  </span>
+                )}
               </div>
 
               {/* Star rating */}
