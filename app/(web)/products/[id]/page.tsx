@@ -51,7 +51,8 @@ export default async function ProductDetailPage({
       label: row.label,
       value: row.value,
     }))
-    .filter((row) => row.label?.trim() && row.value?.trim());
+    .filter((row) => row.label?.trim() && row.value?.trim())
+    .slice(0, 6);
 
   return (
     <div className="min-h-screen bg-background">
