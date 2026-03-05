@@ -123,7 +123,35 @@ export default async function ProductDetailPage({
                   </span>
                 </div>
               )}
-              {primarySpecs.length > 0 && (
+              {technicalRows.length > 0 && (
+                <div className="">
+                  <div className="border-b border-border bg-muted/30 py-3">
+                    <h2 className="text-base font-bold text-primary">
+                      Technical Details
+                    </h2>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {technicalRows.map((row, i) => (
+                          <tr
+                            key={i}
+                            className="border-b border-border hover:bg-muted/20 transition-colors"
+                          >
+                            <td className="py-2 font-medium text-foreground align-top">
+                              {row.label}
+                            </td>
+                            <td className="py-2 font-bold align-top">
+                              {row.value}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+              {/* {primarySpecs.length > 0 && (
                 <div className="">
                   <dl className="my-4 grid grid-cols-2 gap-x-8 gap-y-4 text-sm sm:grid-cols-3">
                     {primarySpecs.map((spec, index) => (
@@ -138,11 +166,11 @@ export default async function ProductDetailPage({
                     ))}
                   </dl>
                 </div>
-              )}
+              )} */}
               {/* Block 3: Bullet highlights + key specifications */}
               {(product.points && product.points.length > 0) ||
               primarySpecs.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-3 mt-2">
                   {product.points && product.points.length > 0 && (
                     <ul className="space-y-2.5">
                       {product.points.map((point, i) => (
@@ -247,7 +275,7 @@ export default async function ProductDetailPage({
             }`}
           >
             {/* Technical Details – table */}
-            {technicalRows.length > 0 && (
+            {/* {technicalRows.length > 0 && (
               <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
                 <div className="border-b border-border bg-muted/30 px-5 py-3 md:px-6">
                   <h2 className="text-base font-bold text-primary">
@@ -274,7 +302,7 @@ export default async function ProductDetailPage({
                   </table>
                 </div>
               </div>
-            )}
+            )} */}
 
             {/* Specifications – table (filter_options) */}
             {filterRows.length > 0 && (
