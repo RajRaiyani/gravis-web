@@ -132,13 +132,13 @@ export default async function ProductDetailPage({
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <tbody>
+                      <tbody className="">
                         {technicalRows.map((row, i) => (
                           <tr
                             key={i}
-                            className="border-b border-border hover:bg-muted/20 transition-colors"
+                            className="border-b odd:bg-muted border-border"
                           >
-                            <td className="py-2 font-medium text-foreground align-top">
+                            <td className="py-2 px-2 font-semibold text-foreground align-top">
                               {row.label}
                             </td>
                             <td className="py-2 font-bold align-top">
