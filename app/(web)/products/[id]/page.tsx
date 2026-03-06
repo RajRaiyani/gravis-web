@@ -136,7 +136,7 @@ export default async function ProductDetailPage({
                         {technicalRows.map((row, i) => (
                           <tr
                             key={i}
-                            className="border-b odd:bg-muted border-border"
+                            className="border-b odd:bg-gray-200 border-border"
                           >
                             <td className="py-2 px-2 font-semibold text-foreground align-top">
                               {row.label}
