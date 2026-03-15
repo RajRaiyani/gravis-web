@@ -37,13 +37,13 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: defaultTitle,
-    template: "%s | Gravis India",
+    template: "%s | Gravis",
   },
   description: defaultDescription,
-  applicationName: "Gravis India",
-  authors: [{ name: "Gravis India", url: siteUrl }],
-  creator: "Gravis India",
-  publisher: "Gravis India",
+  applicationName: "Gravis",
+  authors: [{ name: "Gravis", url: siteUrl }],
+  creator: "Gravis",
+  publisher: "Gravis",
   formatDetection: {
     telephone: false,
     email: false,
@@ -54,6 +54,8 @@ export const metadata: Metadata = {
     apple: "/favicon.svg",
   },
   keywords: [
+    "Gravis",
+    "Gravis Generator",
     "Gravis India",
     "power solutions",
     "generators",

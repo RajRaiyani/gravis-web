@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getProduct } from "@/services/api/product.api";
@@ -7,6 +8,81 @@ import { AddEnquiryButton } from "@/components/pages/products/add-enquiry-button
 import { ChevronRight, Star, MessageCircle, ShieldCheck } from "lucide-react";
 import { CircleCheckBig } from "lucide-react";
 import Constants from "@/config/constant";
+
+// ─── SEO ──────────────────────────────────────────────────────────────────────
+
+const siteUrl = "https://gravisindia.com";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return {
+      title: "Product Not Found",
+      description: "The requested product could not be found.",
+    };
+  }
+
+  const title = product.name;
+  const rawDescription =
+    product.description?.trim() ||
+    (product.points?.length
+      ? product.points.slice(0, 3).join(". ")
+      : undefined) ||
+    `${product.name} – available at Gravis India. Explore specifications, pricing, and enquire now.`;
+  const description =
+    rawDescription.length > 160
+      ? rawDescription.slice(0, 157) + "…"
+      : rawDescription;
+
+  const canonicalUrl = `${siteUrl}/products/${id}`;
+  const primaryImage =
+    product.primary_image?.url ?? `${siteUrl}/logos/primary.svg`;
+
+  const keywords = [
+    product.name,
+    product.category?.name,
+    ...(product.tags ?? []),
+    "Gravis India",
+    "power solutions",
+    "generators",
+  ].filter(Boolean) as string[];
+
+  return {
+    title,
+    description,
+    keywords,
+    alternates: { canonical: canonicalUrl },
+    openGraph: {
+      type: "website",
+      locale: "en_IN",
+      url: canonicalUrl,
+      siteName: "Gravis India",
+      title,
+      description,
+      images: [
+        {
+          url: primaryImage,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+      countryName: "India",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [primaryImage],
+    },
+  };
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -54,8 +130,37 @@ export default async function ProductDetailPage({
     .filter((row) => row.label?.trim() && row.value?.trim())
     .slice(0, 6);
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description || undefined,
+    image: imageUrls.length > 0 ? imageUrls : undefined,
+    sku: product.id,
+    brand: {
+      "@type": "Brand",
+      name: "Gravis India",
+    },
+    category: product.category?.name,
+    offers: {
+      "@type": "Offer",
+      priceCurrency: "INR",
+      price: product.sale_price_in_rupee,
+      availability: "https://schema.org/InStock",
+      url: `${siteUrl}/products/${product.id}`,
+      seller: {
+        "@type": "Organization",
+        name: "Gravis India",
+      },
+    },
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }}
+      />
       <div className="mx-auto container px-4 py-6 md:px-6 lg:px-8">
         {/* ── Breadcrumb ───────────────────────────────────────────── */}
         <nav className="mb-4 flex items-center gap-1.5 text-xs text-muted-foreground sm:mb-6 sm:text-sm">
