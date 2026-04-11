@@ -22,8 +22,8 @@ const socialLinks = [
 ];
 
 const contact = {
-  phone: "+91 98765 43210",
-  email: "hello@gravis.com",
+  phone: "+91 7567156751",
+  email: "contact@gravisindia.com",
 };
 
 export function FloatingContact() {
@@ -37,7 +37,7 @@ export function FloatingContact() {
           "absolute bottom-full right-0 mb-3 w-72 max-w-[calc(100vw-3rem)] origin-bottom-right rounded-2xl border-2 border-primary/20 bg-background shadow-xl transition-all duration-300 ease-out",
           open
             ? "pointer-events-auto visible scale-100 opacity-100"
-            : "pointer-events-none invisible scale-95 opacity-0"
+            : "pointer-events-none invisible scale-95 opacity-0",
         )}
       >
         <div className="flex items-center justify-between border-b border-border/60 bg-primary/5 px-4 py-3">
