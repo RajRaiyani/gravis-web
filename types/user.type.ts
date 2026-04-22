@@ -14,5 +14,8 @@ export interface AuthUser {
   last_name: string;
   full_name: string;
   email: string;
-  phone_number:string;
+  phone_number: string;
+  gst_number?: string | null;
+  pan_number?: string | null;
+  organization_name?: string | null;
 }

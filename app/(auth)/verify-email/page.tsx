@@ -33,7 +33,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { z } from "zod";
 
 const ValidationSchema = z.object({
-  token: z.string().trim().nonempty("Verification token is required"),
   otp: z.string().trim().length(6, "OTP must be 6 digits"),
 });
 

@@ -8,6 +8,7 @@ import { AddEnquiryButton } from "@/components/pages/products/add-enquiry-button
 import { ChevronRight, Star, MessageCircle, ShieldCheck } from "lucide-react";
 import { CircleCheckBig } from "lucide-react";
 import Constants from "@/config/constant";
+import { AddToCartButton } from "@/components/pages/products/add-to-cart-button";
 
 // ─── SEO ──────────────────────────────────────────────────────────────────────
 
@@ -332,6 +333,11 @@ export default async function ProductDetailPage({
                   ))}
                 </div>
               )}
+            <AddToCartButton
+                productId={product.id}
+                productName={product.name}
+                className="flex-1 inline-flex items-center justify-center rounded-xl border border-border bg-background px-5 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
+              />
             </div>
 
             {/* Block 2: CTA buttons */}

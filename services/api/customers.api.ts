@@ -7,6 +7,13 @@ import type {
   VerifyCustomerEmailResponse,
   LoginCustomerRequest,
   LoginCustomerResponse,
+  GetCustomerProfileResponse,
+  UpdateCustomerProfileRequest,
+  UpdateCustomerProfileResponse,
+  ListCustomerStatesResponse,
+  GetCustomerAddressesResponse,
+  UpsertCustomerAddressRequest,
+  UpsertCustomerAddressResponse,
 } from "@/types/customer.type";
 
 export async function registerCustomer(
@@ -41,6 +48,58 @@ export async function loginCustomer(
     url: "/customers/login",
     data,
   })) as LoginCustomerResponse;
+
+  return response;
+}
+
+export async function getCustomerProfile(): Promise<GetCustomerProfileResponse> {
+  const response = (await httpCall({
+    method: "GET",
+    url: "/customers/profile",
+  })) as GetCustomerProfileResponse;
+
+  return response;
+}
+
+export async function updateCustomerProfile(
+  data: UpdateCustomerProfileRequest
+): Promise<UpdateCustomerProfileResponse> {
+  const response = (await httpCall({
+    method: "PUT",
+    url: "/customers/profile",
+    data,
+  })) as UpdateCustomerProfileResponse;
+
+  return response;
+}
+
+export async function listCustomerStates(): Promise<ListCustomerStatesResponse> {
+  const response = (await httpCall({
+    method: "GET",
+    url: "/customers/states",
+  })) as ListCustomerStatesResponse;
+
+  return response;
+}
+
+export async function getCustomerAddresses(): Promise<GetCustomerAddressesResponse> {
+  const response = (await httpCall({
+    method: "GET",
+    url: "/customers/addresses",
+  })) as GetCustomerAddressesResponse;
+
+  return response;
+}
+
+export async function upsertCustomerAddress(
+  type: "billing" | "shipping",
+  data: UpsertCustomerAddressRequest
+): Promise<UpsertCustomerAddressResponse> {
+  const response = (await httpCall({
+    method: "PUT",
+    url: `/customers/addresses/${type}`,
+    data,
+  })) as UpsertCustomerAddressResponse;
 
   return response;
 }

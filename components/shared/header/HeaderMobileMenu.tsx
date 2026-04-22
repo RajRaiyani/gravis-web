@@ -139,7 +139,6 @@ export function HeaderMobileMenu() {
             })}
           </div>
         </nav>
-        {/* 
         <div className="border-t border-slate-200/80 bg-white/60 px-6 py-5">
           <div className="mx-auto flex max-w-xs flex-col gap-3">
             <SheetClose asChild>
@@ -210,7 +209,7 @@ export function HeaderMobileMenu() {
               </div>
             )}
           </div>
-        </div> */}
+        </div>
       </SheetContent>
     </Sheet>
   );
