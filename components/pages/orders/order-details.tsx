@@ -4,6 +4,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleDashed,
+  Clock3,
+  CreditCard,
+  PackageCheck,
+  Truck,
+  XCircle,
+} from "lucide-react";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useGetOrder } from "@/hooks/useOrders";
@@ -26,6 +36,10 @@ function formatDate(value: string) {
   }).format(new Date(value));
 }
 
+function getLineTotalInPaisa(priceInPaisa: number, quantity: number) {
+  return (priceInPaisa || 0) * (quantity || 0);
+}
+
 function getAddressText(address: Record<string, unknown>) {
   const parts = [
     address.address,
@@ -34,6 +48,93 @@ function getAddressText(address: Record<string, unknown>) {
     address.postal_code,
   ].filter((value) => typeof value === "string" && value.trim().length > 0);
   return parts.join(", ");
+}
+
+const ORDER_TIMELINE_STEPS = [
+  { key: "pending", label: "Pending", icon: Clock3 },
+  { key: "processing", label: "Processing", icon: CircleDashed },
+  { key: "out_for_delivery", label: "Out for delivery", icon: Truck },
+  { key: "delivered", label: "Delivered", icon: PackageCheck },
+  { key: "complete", label: "Complete", icon: CheckCircle2 },
+] as const;
+
+function getCurrentTimelineStepIndex(status: string) {
+  const normalizedStatus = status?.toLowerCase();
+  return ORDER_TIMELINE_STEPS.findIndex((step) => step.key === normalizedStatus);
+}
+
+function getOrderStatusBadge(status: string) {
+  const normalizedStatus = status?.toLowerCase();
+  if (normalizedStatus === "cancel") {
+    return {
+      label: "Cancelled",
+      icon: XCircle,
+      className: "border-red-200 bg-red-50 text-red-700",
+    };
+  }
+  if (normalizedStatus === "complete") {
+    return {
+      label: "Complete",
+      icon: CheckCircle2,
+      className: "border-green-200 bg-green-50 text-green-700",
+    };
+  }
+  if (normalizedStatus === "delivered") {
+    return {
+      label: "Delivered",
+      icon: PackageCheck,
+      className: "border-emerald-200 bg-emerald-50 text-emerald-700",
+    };
+  }
+  if (normalizedStatus === "out_for_delivery") {
+    return {
+      label: "Out for delivery",
+      icon: Truck,
+      className: "border-indigo-200 bg-indigo-50 text-indigo-700",
+    };
+  }
+  if (normalizedStatus === "processing") {
+    return {
+      label: "Processing",
+      icon: CircleDashed,
+      className: "border-blue-200 bg-blue-50 text-blue-700",
+    };
+  }
+  return {
+    label: "Pending",
+    icon: Clock3,
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+  };
+}
+
+function getPaymentStatusBadge(status: string) {
+  const normalizedStatus = status?.toLowerCase();
+  if (normalizedStatus === "paid") {
+    return {
+      label: "Paid",
+      icon: CheckCircle2,
+      className: "border-green-200 bg-green-50 text-green-700",
+    };
+  }
+  if (normalizedStatus === "failed") {
+    return {
+      label: "Failed",
+      icon: XCircle,
+      className: "border-red-200 bg-red-50 text-red-700",
+    };
+  }
+  if (normalizedStatus === "partially_paid") {
+    return {
+      label: "Partially paid",
+      icon: AlertTriangle,
+      className: "border-orange-200 bg-orange-50 text-orange-700",
+    };
+  }
+  return {
+    label: "Pending",
+    icon: CreditCard,
+    className: "border-amber-200 bg-amber-50 text-amber-700",
+  };
 }
 
 interface Props {
@@ -79,6 +180,12 @@ export default function OrderDetails({ orderId }: Props) {
     );
   }
 
+  const currentStepIndex = getCurrentTimelineStepIndex(order.status);
+  const orderBadge = getOrderStatusBadge(order.status);
+  const paymentBadge = getPaymentStatusBadge(order.payment_status);
+  const OrderStatusIcon = orderBadge.icon;
+  const PaymentStatusIcon = paymentBadge.icon;
+
   return (
     <div className="min-h-screen bg-background px-4 py-10 md:px-6">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -95,27 +202,79 @@ export default function OrderDetails({ orderId }: Props) {
           </Button>
         </div>
 
-        <Card>
+        <Card className="overflow-hidden border-border/70">
           <CardHeader>
             <CardTitle>Order Summary</CardTitle>
+            <div className="flex flex-wrap gap-2">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${orderBadge.className}`}
+              >
+                <OrderStatusIcon className="size-3.5" />
+                {orderBadge.label}
+              </span>
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium ${paymentBadge.className}`}
+              >
+                <PaymentStatusIcon className="size-3.5" />
+                {paymentBadge.label}
+              </span>
+            </div>
           </CardHeader>
-          <CardContent className="grid gap-4 text-sm sm:grid-cols-4">
-            <div>
-              <p className="text-muted-foreground">Order Status</p>
-              <p className="font-medium capitalize">{order.status.replaceAll("_", " ")}</p>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 text-sm sm:grid-cols-3">
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-xs text-muted-foreground">Paid Amount</p>
+                <p className="text-lg font-semibold">{formatCurrencyFromPaisa(order.paid_amount_in_paisa)}</p>
+              </div>
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-xs text-muted-foreground">Total Amount</p>
+                <p className="text-lg font-semibold">{formatCurrencyFromPaisa(order.total_amount_in_paisa)}</p>
+              </div>
+              <div className="rounded-lg border bg-muted/30 p-3">
+                <p className="text-xs text-muted-foreground">Due Amount</p>
+                <p className="text-lg font-semibold">
+                  {formatCurrencyFromPaisa(order.total_amount_in_paisa - order.paid_amount_in_paisa)}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-muted-foreground">Payment Status</p>
-              <p className="font-medium capitalize">{order.payment_status.replaceAll("_", " ")}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Paid Amount</p>
-              <p className="font-medium">{formatCurrencyFromPaisa(order.paid_amount_in_paisa)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Total Amount</p>
-              <p className="font-semibold">{formatCurrencyFromPaisa(order.total_amount_in_paisa)}</p>
-            </div>
+            {order.status === "cancel" ? (
+              <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">
+                This order was cancelled.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-foreground">Order Timeline</p>
+                <div className="grid gap-2 sm:grid-cols-5">
+                  {ORDER_TIMELINE_STEPS.map((step, index) => {
+                    const StepIcon = step.icon;
+                    const isCompleted = currentStepIndex >= index;
+                    const isCurrent = currentStepIndex === index;
+                    return (
+                      <div key={step.key} className="space-y-1 rounded-md border p-2">
+                        <div
+                          className={`h-1.5 rounded-full ${isCompleted ? "bg-primary" : "bg-muted"}`}
+                        />
+                        <div className="flex items-center gap-1.5">
+                          <StepIcon
+                            className={`size-3.5 ${
+                              isCompleted ? "text-primary" : "text-muted-foreground"
+                            }`}
+                          />
+                          <p
+                            className={`text-xs ${
+                              isCompleted ? "font-medium text-foreground" : "text-muted-foreground"
+                            }`}
+                          >
+                            {step.label}
+                            {isCurrent ? " (Current)" : ""}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -150,7 +309,16 @@ export default function OrderDetails({ orderId }: Props) {
                   <p className="font-medium">{item.product_name}</p>
                   <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
                 </div>
-                <p className="font-semibold">{formatCurrencyFromPaisa(item.price_in_paisa)}</p>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">
+                    {formatCurrencyFromPaisa(item.price_in_paisa)} x {item.quantity}
+                  </p>
+                  <p className="font-semibold">
+                    {formatCurrencyFromPaisa(
+                      getLineTotalInPaisa(item.price_in_paisa, item.quantity)
+                    )}
+                  </p>
+                </div>
               </div>
             ))}
           </CardContent>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { toast } from "react-hot-toast";
@@ -141,6 +141,15 @@ function CartItemRow({
 export default function CartPage() {
   const { data: cart, isLoading, error } = useGetCart();
   const invalidateCart = useInvalidateCart();
+  const items = useMemo(() => cart?.items ?? [], [cart?.items]);
+
+  const orderedItems = useMemo(
+    () =>
+      [...items].sort(
+        (a, b) => a.product_id.localeCompare(b.product_id)
+      ),
+    [items]
+  );
 
   if (isLoading) {
     return (
@@ -155,7 +164,7 @@ export default function CartPage() {
     );
   }
 
-  if (!isLoading && error) {
+  if (error) {
     return (
       <div className="min-h-screen bg-background">
         <div className="mx-auto max-w-3xl px-4 py-12 md:px-6">
@@ -182,7 +191,6 @@ export default function CartPage() {
     );
   }
 
-  const items = cart?.items ?? [];
   const totalPaisa = cart?.total ?? 0;
   const totalRupee = paisaToRupee(totalPaisa);
   const isEmpty = items.length === 0;
@@ -210,7 +218,7 @@ export default function CartPage() {
             <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
               <div className="flex-1">
                 <ul className="space-y-4">
-                  {items.map((item) => (
+                  {orderedItems.map((item) => (
                     <CartItemRow
                       key={item.product_id}
                       item={item}
