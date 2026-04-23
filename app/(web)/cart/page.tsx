@@ -225,10 +225,10 @@ export default function CartPage() {
                     Total: {formatPrice(totalRupee)}
                   </p>
                   <Link
-                    href="/contact"
+                    href="/checkout"
                     className="inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                   >
-                    Proceed to enquire
+                    Proceed to checkout
                   </Link>
                 </div>
               </aside>

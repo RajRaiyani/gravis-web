@@ -32,7 +32,8 @@ export function HeaderMobileMenu() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: cart } = useGetCart();
-  const cartItemCount = cart?.items.length ?? 0;
+  const cartItemCount =
+    cart?.items?.reduce((total, item) => total + (item.quantity || 0), 0) ?? 0;
   const { authUser, isLoggedIn, logout } = useAuth();
 
   const userInitials = useMemo(() => {
