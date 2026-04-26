@@ -58,6 +58,21 @@ interface CheckoutProfile {
   pan_number: string;
 }
 
+interface CheckoutFormErrors {
+  full_name?: string;
+  phone_number?: string;
+  gst_number?: string;
+  pan_number?: string;
+  billing_address?: string;
+  billing_city?: string;
+  billing_state_id?: string;
+  billing_postal_code?: string;
+  shipping_address?: string;
+  shipping_city?: string;
+  shipping_state_id?: string;
+  shipping_postal_code?: string;
+}
+
 type PaymentMode = "full" | "token";
 
 const EMPTY_ADDRESS: CheckoutAddress = {
@@ -67,6 +82,9 @@ const EMPTY_ADDRESS: CheckoutAddress = {
   postal_code: "",
 };
 const TOKEN_PAYMENT_PERCENTAGE = 10;
+const PHONE_NUMBER_REGEX = /^[6-9]\d{9}$/;
+const PAN_NUMBER_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+const GST_NUMBER_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
 
 const CHECKOUT_TERMS_SECTIONS: { title: string; body: string }[] = [
   {
@@ -189,6 +207,7 @@ export default function CheckoutPage() {
   const [isPaying, setIsPaying] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [formErrors, setFormErrors] = useState<CheckoutFormErrors>({});
 
   useEffect(() => {
     if (!isHydrated) return;
@@ -284,28 +303,62 @@ export default function CheckoutPage() {
   const grandTotal = totalRupee + shippingCharge;
 
   function validateCheckoutForm(): boolean {
-    if (!profile.full_name.trim() || !profile.phone_number.trim()) {
-      toast.error("Please fill full name and phone number");
+    const errors: CheckoutFormErrors = {};
+    const fullName = profile.full_name.trim();
+    const phoneNumber = profile.phone_number.trim();
+    const panNumber = profile.pan_number.trim().toUpperCase();
+    const gstNumber = profile.gst_number.trim().toUpperCase();
+
+    if (!fullName) {
+      errors.full_name = "Full name is required";
+    }
+
+    if (!phoneNumber) {
+      errors.phone_number = "Phone number is required";
+    } else if (!PHONE_NUMBER_REGEX.test(phoneNumber)) {
+      errors.phone_number = "Enter a valid 10-digit Indian mobile number";
+    }
+
+    if (panNumber && !PAN_NUMBER_REGEX.test(panNumber)) {
+      errors.pan_number = "Enter a valid PAN number (e.g. ABCDE1234F)";
+    }
+
+    if (gstNumber && !GST_NUMBER_REGEX.test(gstNumber)) {
+      errors.gst_number = "Enter a valid GST number";
+    }
+
+    if (!billingAddress.address.trim()) {
+      errors.billing_address = "Billing address is required";
+    }
+    if (!billingAddress.city.trim()) {
+      errors.billing_city = "Billing city is required";
+    }
+    if (!billingAddress.state_id) {
+      errors.billing_state_id = "Billing state is required";
+    }
+    if (!billingAddress.postal_code.trim()) {
+      errors.billing_postal_code = "Billing PIN code is required";
+    }
+
+    if (!shippingAddress.address.trim()) {
+      errors.shipping_address = "Shipping address is required";
+    }
+    if (!shippingAddress.city.trim()) {
+      errors.shipping_city = "Shipping city is required";
+    }
+    if (!shippingAddress.state_id) {
+      errors.shipping_state_id = "Shipping state is required";
+    }
+    if (!shippingAddress.postal_code.trim()) {
+      errors.shipping_postal_code = "Shipping PIN code is required";
+    }
+
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      toast.error("Please fix the highlighted errors");
       return false;
     }
-    if (
-      !billingAddress.address.trim() ||
-      !billingAddress.city.trim() ||
-      !billingAddress.state_id ||
-      !billingAddress.postal_code.trim()
-    ) {
-      toast.error("Please complete billing details");
-      return false;
-    }
-    if (
-      !shippingAddress.address.trim() ||
-      !shippingAddress.city.trim() ||
-      !shippingAddress.state_id ||
-      !shippingAddress.postal_code.trim()
-    ) {
-      toast.error("Please complete shipping details");
-      return false;
-    }
+
     return true;
   }
 
@@ -399,6 +452,11 @@ export default function CheckoutPage() {
   }
 
   async function handleAgreeTermsAndPay() {
+    if (!validateCheckoutForm()) {
+      setTermsOpen(false);
+      return;
+    }
+
     if (!termsAccepted) {
       toast.error("Please accept the terms and conditions to continue");
       return;
@@ -489,11 +547,16 @@ export default function CheckoutPage() {
                   <Input
                     id="full_name"
                     value={profile.full_name}
-                    onChange={(event) =>
-                      setProfile((prev) => ({ ...prev, full_name: event.target.value }))
-                    }
+                    onChange={(event) => {
+                      setProfile((prev) => ({ ...prev, full_name: event.target.value }));
+                      setFormErrors((prev) => ({ ...prev, full_name: undefined }));
+                    }}
                     placeholder="Enter your full name"
+                    className={formErrors.full_name ? "border-destructive" : ""}
                   />
+                  {formErrors.full_name ? (
+                    <p className="text-xs text-destructive">{formErrors.full_name}</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="phone_number" className="flex items-center gap-1">
@@ -503,11 +566,16 @@ export default function CheckoutPage() {
                   <Input
                     id="phone_number"
                     value={profile.phone_number}
-                    onChange={(event) =>
-                      setProfile((prev) => ({ ...prev, phone_number: event.target.value }))
-                    }
+                    onChange={(event) => {
+                      setProfile((prev) => ({ ...prev, phone_number: event.target.value }));
+                      setFormErrors((prev) => ({ ...prev, phone_number: undefined }));
+                    }}
                     placeholder="Enter your phone number"
+                    className={formErrors.phone_number ? "border-destructive" : ""}
                   />
+                  {formErrors.phone_number ? (
+                    <p className="text-xs text-destructive">{formErrors.phone_number}</p>
+                  ) : null}
                 </div>
               </div>
 
@@ -535,30 +603,40 @@ export default function CheckoutPage() {
                   <Input
                     id="gst_number"
                     value={profile.gst_number}
-                    onChange={(event) =>
+                    onChange={(event) => {
                       setProfile((prev) => ({
                         ...prev,
                         gst_number: event.target.value.toUpperCase(),
-                      }))
-                    }
+                      }));
+                      setFormErrors((prev) => ({ ...prev, gst_number: undefined }));
+                    }}
                     placeholder="Enter your GST number"
                     maxLength={15}
+                    className={formErrors.gst_number ? "border-destructive" : ""}
                   />
+                  {formErrors.gst_number ? (
+                    <p className="text-xs text-destructive">{formErrors.gst_number}</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pan_number">PAN Number</Label>
                   <Input
                     id="pan_number"
                     value={profile.pan_number}
-                    onChange={(event) =>
+                    onChange={(event) => {
                       setProfile((prev) => ({
                         ...prev,
                         pan_number: event.target.value.toUpperCase(),
-                      }))
-                    }
+                      }));
+                      setFormErrors((prev) => ({ ...prev, pan_number: undefined }));
+                    }}
                     placeholder="Enter your PAN number"
                     maxLength={10}
+                    className={formErrors.pan_number ? "border-destructive" : ""}
                   />
+                  {formErrors.pan_number ? (
+                    <p className="text-xs text-destructive">{formErrors.pan_number}</p>
+                  ) : null}
                 </div>
               </div>
             </CardContent>
@@ -577,23 +655,31 @@ export default function CheckoutPage() {
                 <Textarea
                   id="billing_address"
                   value={billingAddress.address}
-                  onChange={(event) =>
-                    setBillingAddress((prev) => ({ ...prev, address: event.target.value }))
-                  }
+                  onChange={(event) => {
+                    setBillingAddress((prev) => ({ ...prev, address: event.target.value }));
+                    setFormErrors((prev) => ({ ...prev, billing_address: undefined }));
+                  }}
                   placeholder="Enter billing address"
-                  className="min-h-24"
+                  className={`min-h-24 ${formErrors.billing_address ? "border-destructive" : ""}`}
                 />
+                {formErrors.billing_address ? (
+                  <p className="text-xs text-destructive">{formErrors.billing_address}</p>
+                ) : null}
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="billing_state">State</Label>
                   <Select
                     value={billingAddress.state_id}
-                    onValueChange={(value) =>
-                      setBillingAddress((prev) => ({ ...prev, state_id: value }))
-                    }
+                    onValueChange={(value) => {
+                      setBillingAddress((prev) => ({ ...prev, state_id: value }));
+                      setFormErrors((prev) => ({ ...prev, billing_state_id: undefined }));
+                    }}
                   >
-                    <SelectTrigger id="billing_state" className="w-full">
+                    <SelectTrigger
+                      id="billing_state"
+                      className={`w-full ${formErrors.billing_state_id ? "border-destructive" : ""}`}
+                    >
                       <SelectValue placeholder="Select state" />
                     </SelectTrigger>
                     <SelectContent>
@@ -604,32 +690,45 @@ export default function CheckoutPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.billing_state_id ? (
+                    <p className="text-xs text-destructive">{formErrors.billing_state_id}</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="billing_city">City</Label>
                   <Input
                     id="billing_city"
                     value={billingAddress.city}
-                    onChange={(event) =>
-                      setBillingAddress((prev) => ({ ...prev, city: event.target.value }))
-                    }
+                    onChange={(event) => {
+                      setBillingAddress((prev) => ({ ...prev, city: event.target.value }));
+                      setFormErrors((prev) => ({ ...prev, billing_city: undefined }));
+                    }}
                     placeholder="City"
+                    className={formErrors.billing_city ? "border-destructive" : ""}
                   />
+                  {formErrors.billing_city ? (
+                    <p className="text-xs text-destructive">{formErrors.billing_city}</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="billing_postal_code">PIN code</Label>
                   <Input
                     id="billing_postal_code"
                     value={billingAddress.postal_code}
-                    onChange={(event) =>
+                    onChange={(event) => {
                       setBillingAddress((prev) => ({
                         ...prev,
                         postal_code: event.target.value,
-                      }))
-                    }
+                      }));
+                      setFormErrors((prev) => ({ ...prev, billing_postal_code: undefined }));
+                    }}
                     placeholder="PIN code"
                     maxLength={10}
+                    className={formErrors.billing_postal_code ? "border-destructive" : ""}
                   />
+                  {formErrors.billing_postal_code ? (
+                    <p className="text-xs text-destructive">{formErrors.billing_postal_code}</p>
+                  ) : null}
                 </div>
               </div>
             </CardContent>
@@ -658,13 +757,17 @@ export default function CheckoutPage() {
                 <Textarea
                   id="shipping_address"
                   value={shippingAddress.address}
-                  onChange={(event) =>
-                    setShippingAddress((prev) => ({ ...prev, address: event.target.value }))
-                  }
+                  onChange={(event) => {
+                    setShippingAddress((prev) => ({ ...prev, address: event.target.value }));
+                    setFormErrors((prev) => ({ ...prev, shipping_address: undefined }));
+                  }}
                   placeholder="Enter shipping address"
-                  className="min-h-24"
+                  className={`min-h-24 ${formErrors.shipping_address ? "border-destructive" : ""}`}
                   disabled={useBillingForShipping}
                 />
+                {formErrors.shipping_address ? (
+                  <p className="text-xs text-destructive">{formErrors.shipping_address}</p>
+                ) : null}
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
@@ -672,12 +775,16 @@ export default function CheckoutPage() {
                   <Label htmlFor="shipping_state">State</Label>
                   <Select
                     value={shippingAddress.state_id}
-                    onValueChange={(value) =>
-                      setShippingAddress((prev) => ({ ...prev, state_id: value }))
-                    }
+                    onValueChange={(value) => {
+                      setShippingAddress((prev) => ({ ...prev, state_id: value }));
+                      setFormErrors((prev) => ({ ...prev, shipping_state_id: undefined }));
+                    }}
                     disabled={useBillingForShipping}
                   >
-                    <SelectTrigger id="shipping_state" className="w-full">
+                    <SelectTrigger
+                      id="shipping_state"
+                      className={`w-full ${formErrors.shipping_state_id ? "border-destructive" : ""}`}
+                    >
                       <SelectValue placeholder="Select state" />
                     </SelectTrigger>
                     <SelectContent>
@@ -688,34 +795,47 @@ export default function CheckoutPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.shipping_state_id ? (
+                    <p className="text-xs text-destructive">{formErrors.shipping_state_id}</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="shipping_city">City</Label>
                   <Input
                     id="shipping_city"
                     value={shippingAddress.city}
-                    onChange={(event) =>
-                      setShippingAddress((prev) => ({ ...prev, city: event.target.value }))
-                    }
+                    onChange={(event) => {
+                      setShippingAddress((prev) => ({ ...prev, city: event.target.value }));
+                      setFormErrors((prev) => ({ ...prev, shipping_city: undefined }));
+                    }}
                     placeholder="City"
                     disabled={useBillingForShipping}
+                    className={formErrors.shipping_city ? "border-destructive" : ""}
                   />
+                  {formErrors.shipping_city ? (
+                    <p className="text-xs text-destructive">{formErrors.shipping_city}</p>
+                  ) : null}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="shipping_postal_code">PIN code</Label>
                   <Input
                     id="shipping_postal_code"
                     value={shippingAddress.postal_code}
-                    onChange={(event) =>
+                    onChange={(event) => {
                       setShippingAddress((prev) => ({
                         ...prev,
                         postal_code: event.target.value,
-                      }))
-                    }
+                      }));
+                      setFormErrors((prev) => ({ ...prev, shipping_postal_code: undefined }));
+                    }}
                     placeholder="PIN code"
                     maxLength={10}
                     disabled={useBillingForShipping}
+                    className={formErrors.shipping_postal_code ? "border-destructive" : ""}
                   />
+                  {formErrors.shipping_postal_code ? (
+                    <p className="text-xs text-destructive">{formErrors.shipping_postal_code}</p>
+                  ) : null}
                 </div>
               </div>
             </CardContent>

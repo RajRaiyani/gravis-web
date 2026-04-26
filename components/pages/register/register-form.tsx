@@ -21,15 +21,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { z } from "zod";
 
+const INDIAN_MOBILE_REGEX = /^[6-9]\d{9}$/;
+
 const ValidationSchema = z.object({
-  first_name: z.string().min(1, "First name is required"),
-  last_name: z.string().min(1, "Last name is required"),
-  email: z.string().email("Please enter a valid email"),
+  first_name: z.string().trim().min(1, "First name is required"),
+  last_name: z.string().trim().min(1, "Last name is required"),
+  email: z
+    .string()
+    .trim()
+    .email("Please enter a valid email address")
+    .transform((value) => value.toLowerCase()),
   password: z.string().min(8, "Password must be at least 8 characters"),
   phone_number: z
     .string()
-    .min(7, "Please enter a valid phone number")
-    .max(20, "Please enter a valid phone number"),
+    .trim()
+    .regex(INDIAN_MOBILE_REGEX, "Enter a valid 10-digit Indian mobile number"),
 });
 
 const PENDING_CUSTOMER_REGISTER_KEY = "pending_customer_register";
@@ -191,7 +197,11 @@ export default function RegisterForm() {
                 autoComplete="tel"
                 aria-invalid={fieldState.invalid}
                 className="h-11"
+                maxLength={10}
                 {...field}
+                onChange={(event) =>
+                  field.onChange(event.target.value.replace(/\D/g, "").slice(0, 10))
+                }
               />
               <FieldError errors={[fieldState.error]} />
             </FieldContent>
