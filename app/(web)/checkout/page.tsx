@@ -81,7 +81,8 @@ const EMPTY_ADDRESS: CheckoutAddress = {
   state_id: "",
   postal_code: "",
 };
-const TOKEN_PAYMENT_PERCENTAGE = 10;
+const TOKEN_PAYMENT_PERCENTAGE = 15;
+const MIN_TOKEN_PAYMENT_RUPEE = 2000;
 const PHONE_NUMBER_REGEX = /^[6-9]\d{9}$/;
 const PAN_NUMBER_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const GST_NUMBER_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
@@ -292,9 +293,13 @@ export default function CheckoutPage() {
   }, [statesResponse]);
 
   const totalRupee = paisaToRupee(cartResponse?.total ?? 0);
-  const tokenPayablePaisa = Math.max(
-    100,
-    Math.round(((cartResponse?.total ?? 0) * TOKEN_PAYMENT_PERCENTAGE) / 100)
+  const minimumTokenPayablePaisa = Math.round(MIN_TOKEN_PAYMENT_RUPEE * 100);
+  const tokenPayablePaisa = Math.min(
+    cartResponse?.total ?? 0,
+    Math.max(
+      minimumTokenPayablePaisa,
+      Math.round(((cartResponse?.total ?? 0) * TOKEN_PAYMENT_PERCENTAGE) / 100)
+    )
   );
   const tokenPayableRupee = paisaToRupee(tokenPayablePaisa);
   const itemCount =
@@ -915,6 +920,9 @@ export default function CheckoutPage() {
                     </div>
                   </button>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  Token amount is 15% of total or ₹2,000 (whichever is higher).
+                </p>
                 <p className="text-xs text-muted-foreground">
                   Final payable amount is validated on backend and cannot be modified from
                   frontend.
