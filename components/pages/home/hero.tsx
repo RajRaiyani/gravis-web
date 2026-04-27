@@ -23,21 +23,9 @@ export default async function Hero() {
     console.error("Failed to fetch banners:", error);
   }
 
-  const defaultBanner: BannerImage = {
-    id: undefined,
-    url: "/images/pages/home/hero-banner-1.png",
-    alt: "Gravis promotional banner",
-  };
-
-  const allBanners = [defaultBanner, ...apiBanners];
-
-  if (allBanners.length === 0) {
-    allBanners.push(defaultBanner);
-  }
-
   return (
     <section className="w-full py-6 md:py-8">
-      <HeroCarouselClient banners={allBanners} />
+      <HeroCarouselClient banners={apiBanners} />
     </section>
   );
 }

@@ -118,16 +118,8 @@ function ProductsPageContent() {
     enabled: !!query.category_id,
   });
 
-  const defaultBanner = useMemo(
-    () => ({
-      url: "/images/pages/home/hero-banner-1.png",
-      alt: "Gravis promotional banner",
-    }),
-    [],
-  );
-
   const banner = useMemo(() => {
-    if (!query.category_id) return defaultBanner;
+    if (!query.category_id) return null;
     const categoryBanner = banners.find(
       (b) => b.id === query.category_id && b.banner_image?.url,
     );
@@ -136,8 +128,8 @@ function ProductsPageContent() {
           url: categoryBanner.banner_image!.url,
           alt: categoryBanner.name ?? "Category banner",
         }
-      : defaultBanner;
-  }, [query.category_id, banners, defaultBanner]);
+      : null;
+  }, [query.category_id, banners]);
 
   const isLoading = productsLoading || categoriesLoading;
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -153,7 +145,7 @@ function ProductsPageContent() {
 
   return (
     <div className="min-h-screen bg-neutral-100">
-      <ProductsPageBanner url={banner.url} alt={banner.alt} />
+      {banner ? <ProductsPageBanner url={banner.url} alt={banner.alt} /> : null}
 
       <div className="sticky top-22 z-40 lg:hidden bg-transparent">
         <div className="mx-2 mt-4 md:container md:mx-auto lg:py-0">
