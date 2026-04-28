@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type {
   ProductCategory,
@@ -24,6 +25,8 @@ interface CategoryFiltersSidebarProps {
   selectedOptionIds: string[];
   /** When true (e.g. inside bottom sheet), use full height and no sticky so parent controls scroll */
   embedded?: boolean;
+  /** Optional callback after applying embedded filters (e.g. close mobile sheet) */
+  onApplyFilters?: () => void;
 }
 
 export function CategoryFiltersSidebar({
@@ -32,6 +35,7 @@ export function CategoryFiltersSidebar({
   categoryFilters,
   selectedOptionIds,
   embedded = false,
+  onApplyFilters,
 }: CategoryFiltersSidebarProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,9 +43,30 @@ export function CategoryFiltersSidebar({
 
   const categoryValue = currentCategoryId ?? ALL_CATEGORIES_VALUE;
 
-  const hasActiveFilters = selectedOptionIds.length > 0;
+  const [pendingOptionIds, setPendingOptionIds] = useState(selectedOptionIds);
+
+  useEffect(() => {
+    if (embedded) {
+      setPendingOptionIds(selectedOptionIds);
+    }
+  }, [embedded, selectedOptionIds]);
+
+  const activeOptionIds = embedded ? pendingOptionIds : selectedOptionIds;
+  const hasActiveFilters = activeOptionIds.length > 0;
+  const hasPendingChanges = useMemo(() => {
+    if (!embedded) return false;
+    if (pendingOptionIds.length !== selectedOptionIds.length) return true;
+
+    const selectedSet = new Set(selectedOptionIds);
+    return pendingOptionIds.some((id) => !selectedSet.has(id));
+  }, [embedded, pendingOptionIds, selectedOptionIds]);
 
   function clearFilters() {
+    if (embedded) {
+      setPendingOptionIds([]);
+      return;
+    }
+
     const params = new URLSearchParams(searchParams.toString());
     params.delete("option_ids");
     router.replace(`${pathName}?${params.toString()}`, { scroll: false });
@@ -60,9 +85,17 @@ export function CategoryFiltersSidebar({
   };
 
   function onOptionClick(optionId: string) {
+    if (embedded) {
+      setPendingOptionIds((prev) =>
+        prev.includes(optionId)
+          ? prev.filter((id) => id !== optionId)
+          : [...prev, optionId],
+      );
+      return;
+    }
+
     const params = new URLSearchParams(searchParams.toString());
     const optionIdsParams = params.getAll("option_ids");
-    debugger;
     const optionIds = optionIdsParams.length ? optionIdsParams : [];
 
     if (optionIds.includes(optionId)) {
@@ -74,6 +107,16 @@ export function CategoryFiltersSidebar({
       params.append("option_ids", optionId);
     }
     router.replace(`${pathName}?${params.toString()}`, { scroll: false });
+  }
+
+  function applyEmbeddedFilters() {
+    if (!embedded) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("option_ids");
+    pendingOptionIds.forEach((id) => params.append("option_ids", id));
+    router.replace(`${pathName}?${params.toString()}`, { scroll: false });
+    onApplyFilters?.();
   }
 
   return (
@@ -136,7 +179,7 @@ export function CategoryFiltersSidebar({
                   </h2>
                   {hasActiveFilters && (
                     <span className="rounded-full bg-[#0046B7] px-2 py-0.5 text-[10px] font-medium text-white">
-                      {selectedOptionIds.length}
+                      {activeOptionIds.length}
                     </span>
                   )}
                 </div>
@@ -165,9 +208,7 @@ export function CategoryFiltersSidebar({
                       </h3>
                       <ul className="flex flex-col gap-0.5">
                         {filter.options.map((option) => {
-                          const isChecked = selectedOptionIds.includes(
-                            option.id,
-                          );
+                          const isSelected = activeOptionIds.includes(option.id);
 
                           return (
                             <li key={option.id}>
@@ -176,7 +217,7 @@ export function CategoryFiltersSidebar({
                                 onClick={() => onOptionClick(option.id)}
                                 className={cn(
                                   "flex w-full cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors",
-                                  isChecked
+                                  isSelected
                                     ? "text-[#0046B7]"
                                     : "text-slate-700 hover:bg-slate-100/80",
                                 )}
@@ -184,13 +225,13 @@ export function CategoryFiltersSidebar({
                                 <span
                                   className={cn(
                                     "flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-[5px] border-2 transition-colors",
-                                    isChecked
+                                    isSelected
                                       ? "border-[#0046B7] bg-[#0046B7] text-white"
                                       : "border-slate-300 bg-white",
                                   )}
                                   aria-hidden
                                 >
-                                  {isChecked ? (
+                                  {isSelected ? (
                                     <svg
                                       className="size-3"
                                       fill="none"
@@ -219,6 +260,19 @@ export function CategoryFiltersSidebar({
                 </div>
               )}
             </section>
+          )}
+
+          {embedded && currentCategoryId && (
+            <div className="sticky bottom-0 border-t border-slate-100 bg-white p-4">
+              <button
+                type="button"
+                onClick={applyEmbeddedFilters}
+                disabled={!hasPendingChanges}
+                className="h-11 w-full rounded-md bg-[#0046B7] px-4 text-sm font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Apply filters
+              </button>
+            </div>
           )}
         </div>
       </aside>

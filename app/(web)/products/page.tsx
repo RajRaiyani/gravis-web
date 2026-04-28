@@ -141,7 +141,11 @@ function ProductsPageContent() {
     selectedOptionIds: query.option_ids ?? [],
     search: query.search,
   };
-  const sidebarPropsEmbedded = { ...sidebarProps, embedded: true };
+  const sidebarPropsEmbedded = {
+    ...sidebarProps,
+    embedded: true,
+    onApplyFilters: () => setFiltersOpen(false),
+  };
 
   return (
     <div className="min-h-screen bg-neutral-100">
@@ -160,7 +164,7 @@ function ProductsPageContent() {
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
           <SheetContent
             side="right"
-            className="rounded-md p-2 w-full"
+            className="w-[88vw] max-w-[360px] rounded-md p-2"
             showCloseButton={false}
           >
             <SheetHeader className="border-b border-slate-100 px-4 py-3">
