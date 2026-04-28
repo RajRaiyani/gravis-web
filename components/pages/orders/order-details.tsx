@@ -10,6 +10,7 @@ import {
   CircleDashed,
   Clock3,
   CreditCard,
+  Download,
   PackageCheck,
   Truck,
   XCircle,
@@ -20,6 +21,7 @@ import { useGetOrder } from "@/hooks/useOrders";
 import { serverDetails } from "@/config/env";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { downloadOrderReceiptPdf } from "@/lib/order-receipt";
 
 function formatCurrencyFromPaisa(paisa: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -197,9 +199,15 @@ export default function OrderDetails({ orderId }: Props) {
             <h1 className="text-2xl font-semibold tracking-tight">{order.serial}</h1>
             <p className="text-sm text-muted-foreground">Placed on {formatDate(order.created_at)}</p>
           </div>
-          <Button variant="outline" asChild>
-            <Link href="/orders">Back to orders</Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={() => downloadOrderReceiptPdf(order)}>
+              <Download className="mr-2 size-4" />
+              Download Receipt
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/orders">Back to orders</Link>
+            </Button>
+          </div>
         </div>
 
         <Card className="overflow-hidden border-border/70">
