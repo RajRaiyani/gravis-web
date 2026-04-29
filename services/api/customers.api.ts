@@ -28,6 +28,19 @@ export async function registerCustomer(
   return response;
 }
 
+/** Resend OTP using the pending registration JWT from the verify-email URL (no password stored client-side). */
+export async function resendVerificationEmail(
+  registrationToken: string
+): Promise<RegisterCustomerResponse> {
+  const response = (await httpCall({
+    method: "POST",
+    url: "/customers/resend-verification",
+    data: { token: registrationToken },
+  })) as RegisterCustomerResponse;
+
+  return response;
+}
+
 export async function verifyCustomerEmail(
   data: VerifyCustomerEmailRequest
 ): Promise<VerifyCustomerEmailResponse> {

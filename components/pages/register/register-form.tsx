@@ -38,8 +38,6 @@ const ValidationSchema = z.object({
     .regex(INDIAN_MOBILE_REGEX, "Enter a valid 10-digit Indian mobile number"),
 });
 
-const PENDING_CUSTOMER_REGISTER_KEY = "pending_customer_register";
-
 const defaultValues: z.infer<typeof ValidationSchema> = {
   first_name: "",
   last_name: "",
@@ -85,7 +83,6 @@ export default function RegisterForm() {
   const { handleSubmit } = form;
 
   function onValidSubmit(data: z.infer<typeof ValidationSchema>) {
-    localStorage.setItem(PENDING_CUSTOMER_REGISTER_KEY, JSON.stringify(data));
     register(data);
   }
 

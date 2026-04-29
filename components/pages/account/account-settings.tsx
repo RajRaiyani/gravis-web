@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { Building2, LogOut, Settings, Truck, UserRound } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import Cookies from "js-cookie";
-
 import { useAuth } from "@/contexts/AuthContext";
+import { setStoredUserJson } from "@/utils/authStorage";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,12 +92,11 @@ export default function AccountSettings() {
       });
 
       if (authUser) {
-        Cookies.set(
-          "user",
+        setStoredUserJson(
           JSON.stringify({
             ...authUser,
             ...customer,
-          })
+          }),
         );
       }
 

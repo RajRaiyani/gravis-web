@@ -1,5 +1,5 @@
 import httpCall from "../httpCall";
-import Cookies from "js-cookie";
+import { setStoredTokenOnly } from "@/utils/authStorage";
 
 
 export interface UpdateCartResponse {
@@ -47,11 +47,8 @@ export async function updateCartItem(
     data: { quantity },
   })) as UpdateCartResponse;
 
-  if (
-    typeof window !== "undefined" &&
-    response.token
-  ) {
-    Cookies.set('token', response.token);
+  if (typeof window !== "undefined" && response.token) {
+    setStoredTokenOnly(response.token);
   }
   return response;
 }

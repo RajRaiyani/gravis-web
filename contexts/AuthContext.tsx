@@ -9,7 +9,12 @@ import {
 } from "react";
 
 import type { AuthUser } from "@/types/user.type";
-import Cookies from "js-cookie";
+import {
+  clearStoredAuth,
+  getStoredToken,
+  getStoredUserJson,
+  setStoredAuth,
+} from "@/utils/authStorage";
 
 export interface AuthContextType {
   authUser: AuthUser | null;
@@ -29,17 +34,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const storedUser = Cookies.get("user");
-      const storedToken = Cookies.get("token");
+      const storedToken = getStoredToken();
+      const storedUserJson = getStoredUserJson();
 
-      if (storedUser) {
-        setAuthUser(JSON.parse(storedUser) as AuthUser);
-      }
-      if (storedToken) {
+      if (!storedToken) {
+        setAuthUser(null);
+        setToken(null);
+      } else {
         setToken(storedToken);
+        if (storedUserJson) {
+          setAuthUser(JSON.parse(storedUserJson) as AuthUser);
+        }
       }
     } catch {
-      // Ignore malformed cookies
+      // Ignore malformed storage
     } finally {
       setIsHydrated(true);
     }
@@ -48,17 +56,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isLoggedIn = authUser !== null;
 
   function login(AuthUser: AuthUser, token: string, expiresAt: string) {
-    Cookies.set("user", JSON.stringify(AuthUser), {
-      expires: new Date(expiresAt),
-    });
-    Cookies.set("token", token, { expires: new Date(expiresAt) });
+    setStoredAuth(JSON.stringify(AuthUser), token, expiresAt);
     setAuthUser(AuthUser);
     setToken(token);
   }
 
   function logout() {
-    Cookies.remove("user");
-    Cookies.remove("token");
+    clearStoredAuth();
     setAuthUser(null);
     setToken(null);
   }

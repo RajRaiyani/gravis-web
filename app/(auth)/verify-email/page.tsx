@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
@@ -8,13 +8,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
 import {
-  registerCustomer,
+  resendVerificationEmail,
   verifyCustomerEmail,
 } from "@/services/api/customers.api";
-import type {
-  RegisterCustomerRequest,
-  VerifyCustomerEmailRequest,
-} from "@/types/customer.type";
+import type { VerifyCustomerEmailRequest } from "@/types/customer.type";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -36,12 +33,21 @@ const ValidationSchema = z.object({
   otp: z.string().trim().length(6, "OTP must be 6 digits"),
 });
 
-const PENDING_CUSTOMER_REGISTER_KEY = "pending_customer_register";
+/** Legacy key: previously stored registration payload including password — cleared on mount. */
+const LEGACY_PENDING_CUSTOMER_REGISTER_KEY = "pending_customer_register";
 
 function VerifyEmailPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
+
+  useEffect(() => {
+    try {
+      localStorage.removeItem(LEGACY_PENDING_CUSTOMER_REGISTER_KEY);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   const rawRedirectUrl = searchParams.get("redirect_url");
   const redirectUrl = rawRedirectUrl
@@ -65,19 +71,19 @@ function VerifyEmailPageContent() {
       }
       
       login(data.customer, data.token, data.expires_at);
-      localStorage.removeItem(PENDING_CUSTOMER_REGISTER_KEY);
       toast.success("Email verified! You're now signed in.");
       router.replace(nextUrl);
     },
   });
 
   const {
-    mutate: resendRegister,
+    mutate: resendVerification,
     isPending: resending,
     isError: isResendError,
     error: resendError,
   } = useMutation({
-    mutationFn: (data: RegisterCustomerRequest) => registerCustomer(data),
+    mutationFn: (registrationToken: string) =>
+      resendVerificationEmail(registrationToken),
     onSuccess: (data) => {
       const query = new URLSearchParams();
       query.set("token", data.token);
@@ -120,15 +126,13 @@ function VerifyEmailPageContent() {
   function onResendOtp() {
     if (resending || verifying) return;
 
-    const raw = localStorage.getItem(PENDING_CUSTOMER_REGISTER_KEY);
-    if (!raw) {
-      toast.error("Please register again to resend the code.");
+    const registrationToken = searchParams.get("token") ?? "";
+    if (!registrationToken) {
+      toast.error("Verification session expired. Please register again.");
       return;
     }
 
-    const parsedStored = JSON.parse(raw) as RegisterCustomerRequest;
-
-    resendRegister(parsedStored);
+    resendVerification(registrationToken);
   }
 
   return (
