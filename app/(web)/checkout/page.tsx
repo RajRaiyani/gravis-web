@@ -83,6 +83,7 @@ const EMPTY_ADDRESS: CheckoutAddress = {
 };
 const TOKEN_PAYMENT_PERCENTAGE = 15;
 const MIN_TOKEN_PAYMENT_RUPEE = 2000;
+const TOKEN_PAYMENT_THRESHOLD_RUPEE = 4000;
 const PHONE_NUMBER_REGEX = /^[6-9]\d{9}$/;
 const PAN_NUMBER_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const GST_NUMBER_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/;
@@ -293,19 +294,28 @@ export default function CheckoutPage() {
   }, [statesResponse]);
 
   const totalRupee = paisaToRupee(cartResponse?.total ?? 0);
+  const isTokenPaymentAllowed = totalRupee > TOKEN_PAYMENT_THRESHOLD_RUPEE;
   const minimumTokenPayablePaisa = Math.round(MIN_TOKEN_PAYMENT_RUPEE * 100);
-  const tokenPayablePaisa = Math.min(
-    cartResponse?.total ?? 0,
-    Math.max(
-      minimumTokenPayablePaisa,
-      Math.round(((cartResponse?.total ?? 0) * TOKEN_PAYMENT_PERCENTAGE) / 100)
-    )
-  );
+  const tokenPayablePaisa = isTokenPaymentAllowed
+    ? Math.min(
+        cartResponse?.total ?? 0,
+        Math.max(
+          minimumTokenPayablePaisa,
+          Math.round(((cartResponse?.total ?? 0) * TOKEN_PAYMENT_PERCENTAGE) / 100)
+        )
+      )
+    : cartResponse?.total ?? 0;
   const tokenPayableRupee = paisaToRupee(tokenPayablePaisa);
   const itemCount =
     cartResponse?.items?.reduce((total, item) => total + (item.quantity || 0), 0) ?? 0;
   const shippingCharge = 0;
   const grandTotal = totalRupee + shippingCharge;
+
+  useEffect(() => {
+    if (!isTokenPaymentAllowed && paymentMode === "token") {
+      setPaymentMode("full");
+    }
+  }, [isTokenPaymentAllowed, paymentMode]);
 
   function validateCheckoutForm(): boolean {
     const errors: CheckoutFormErrors = {};
@@ -888,7 +898,9 @@ export default function CheckoutPage() {
 
               <div className="space-y-2">
                 <Label>Payment Mode</Label>
-                <div className="grid grid-cols-2 gap-2">
+                <div
+                  className={`grid gap-2 ${isTokenPaymentAllowed ? "grid-cols-2" : "grid-cols-1"}`}
+                >
                   <button
                     type="button"
                     onClick={() => setPaymentMode("full")}
@@ -904,25 +916,33 @@ export default function CheckoutPage() {
                       {formatPrice(totalRupee)}
                     </div>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => setPaymentMode("token")}
-                    className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
-                      paymentMode === "token"
-                        ? "border-primary bg-primary/10 text-foreground"
-                        : "border-border text-muted-foreground hover:bg-muted/50"
-                    }`}
-                    disabled={isPaying}
-                  >
-                    Token Money
-                    <div className="mt-1 font-semibold text-foreground">
-                      {formatPrice(tokenPayableRupee)}
-                    </div>
-                  </button>
+                  {isTokenPaymentAllowed ? (
+                    <button
+                      type="button"
+                      onClick={() => setPaymentMode("token")}
+                      className={`rounded-md border px-3 py-2 text-left text-sm transition-colors ${
+                        paymentMode === "token"
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border text-muted-foreground hover:bg-muted/50"
+                      }`}
+                      disabled={isPaying}
+                    >
+                      Token Money
+                      <div className="mt-1 font-semibold text-foreground">
+                        {formatPrice(tokenPayableRupee)}
+                      </div>
+                    </button>
+                  ) : null}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Token amount is 15% of total or ₹2,000 (whichever is higher).
-                </p>
+                {isTokenPaymentAllowed ? (
+                  <p className="text-xs text-muted-foreground">
+                    Token amount is 15% of total or ₹2,000 (whichever is higher).
+                  </p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    For orders up to ₹4,000, full payment is required.
+                  </p>
+                )}
                 <p className="text-xs text-muted-foreground">
                   Final payable amount is validated on backend and cannot be modified from
                   frontend.

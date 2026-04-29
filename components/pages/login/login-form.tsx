@@ -6,7 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { loginCustomer } from "@/services/api/customers.api";
 import type { LoginCustomerRequest } from "@/types/customer.type";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
+import { cartKeys } from "@/hooks/useCart";
 
 const ValidationSchema = z.object({
   email: z
@@ -41,6 +42,7 @@ const defaultValues: z.infer<typeof ValidationSchema> = {
 export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { login } = useAuth();
   const rawRedirectUrl = searchParams.get("redirect_url");
   const redirectUrl = rawRedirectUrl
@@ -56,7 +58,7 @@ export default function LoginForm() {
     error,
   } = useMutation({
     mutationFn: (data: LoginCustomerRequest) => loginCustomer(data),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       let nextUrl = redirectUrl && redirectUrl.startsWith("/")
         ? redirectUrl
         : "/";
@@ -68,6 +70,7 @@ export default function LoginForm() {
       }
       
       login(data.customer, data.token, data.expires_at);
+      await queryClient.invalidateQueries({ queryKey: cartKeys.all });
       toast.success("Signed in successfully.");
       router.replace(nextUrl);
     },

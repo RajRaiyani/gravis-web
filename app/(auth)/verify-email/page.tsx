@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   resendVerificationEmail,
   verifyCustomerEmail,
@@ -27,6 +27,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { useAuth } from "@/contexts/AuthContext";
+import { cartKeys } from "@/hooks/useCart";
 import { z } from "zod";
 
 const ValidationSchema = z.object({
@@ -39,6 +40,7 @@ const LEGACY_PENDING_CUSTOMER_REGISTER_KEY = "pending_customer_register";
 function VerifyEmailPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { login } = useAuth();
 
   useEffect(() => {
@@ -61,7 +63,7 @@ function VerifyEmailPageContent() {
     error,
   } = useMutation({
     mutationFn: (data: VerifyCustomerEmailRequest) => verifyCustomerEmail(data),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       let nextUrl = redirectUrl ?? "/";
       
       // If redirecting to a product page after auth, add flag to auto-open enquiry
@@ -71,6 +73,7 @@ function VerifyEmailPageContent() {
       }
       
       login(data.customer, data.token, data.expires_at);
+      await queryClient.invalidateQueries({ queryKey: cartKeys.all });
       toast.success("Email verified! You're now signed in.");
       router.replace(nextUrl);
     },

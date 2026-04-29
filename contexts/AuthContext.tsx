@@ -10,9 +10,11 @@ import {
 
 import type { AuthUser } from "@/types/user.type";
 import {
+  clearGuestCartToken,
   clearStoredAuth,
-  getStoredToken,
+  getStoredCustomerAuthToken,
   getStoredUserJson,
+  migrateLegacyGuestTokenFromTokenSlot,
   setStoredAuth,
 } from "@/utils/authStorage";
 
@@ -33,8 +35,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    migrateLegacyGuestTokenFromTokenSlot();
     try {
-      const storedToken = getStoredToken();
+      const storedToken = getStoredCustomerAuthToken();
       const storedUserJson = getStoredUserJson();
 
       if (!storedToken) {
@@ -57,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function login(AuthUser: AuthUser, token: string, expiresAt: string) {
     setStoredAuth(JSON.stringify(AuthUser), token, expiresAt);
+    clearGuestCartToken();
     setAuthUser(AuthUser);
     setToken(token);
   }

@@ -1,5 +1,5 @@
 import httpCall from "../httpCall";
-import { setStoredTokenOnly } from "@/utils/authStorage";
+import { setGuestCartToken } from "@/utils/authStorage";
 
 
 export interface UpdateCartResponse {
@@ -48,7 +48,7 @@ export async function updateCartItem(
   })) as UpdateCartResponse;
 
   if (typeof window !== "undefined" && response.token) {
-    setStoredTokenOnly(response.token);
+    setGuestCartToken(response.token);
   }
   return response;
 }
