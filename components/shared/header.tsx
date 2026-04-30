@@ -40,7 +40,7 @@ const navigationItems = [
   { href: "/", label: "Home" },
   { href: "/about", label: "About us" },
   { href: "/products", label: "Product", hasDropdown: true },
-  { href: "/opportunity", label: "Opportunity", hasDropdown: true },
+  { href: "/contact", label: "Contact Us" },
 ];
 
 export default function Header() {
@@ -85,23 +85,22 @@ export default function Header() {
       )}
     >
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-6 px-4 md:px-6">
-        {/* Left: Logo + tagline */}
+        {/* Left: Logo */}
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/"
-            className="flex flex-col leading-none"
+            className="flex items-center"
             onClick={() => setMobileMenuOpen(false)}
           >
-            <span className="font-michroma text-xl font-bold tracking-tight text-[#121212] md:text-2xl">
-              GRAVIS
-            </span>
-            <span className="mt-1 text-[11px] font-medium tracking-[0.12em] text-[#3B3B3B] uppercase">
-              India
-            </span>
+            <Image
+              src="/logos/primary.svg"
+              alt="Gravis India"
+              width={171}
+              height={41}
+              className="h-9 w-auto md:h-10"
+              priority
+            />
           </Link>
-          <span className="hidden border-l border-slate-200 pl-3 text-xs font-medium text-[#0046B7] md:inline">
-            &quot; Powering Your World, Reliably &quot;
-          </span>
         </div>
 
         {/* Center: Desktop nav */}
@@ -142,15 +141,15 @@ export default function Header() {
             |
           </span>
           <Link
-            href="/opportunity"
+            href="/contact"
             className={cn(
               "inline-flex items-center gap-1.5 px-1 py-1 transition-colors",
-              isActive("/opportunity")
+              isActive("/contact")
                 ? "text-[#0046B7]"
                 : "text-slate-600 hover:text-[#0046B7]",
             )}
           >
-            Opportunity
+            Contact Us
           </Link>
         </nav>
 
@@ -239,16 +238,6 @@ export default function Header() {
                 Register
               </Link>
             </div>
-          )}
-
-          {/* Primary CTA */}
-          {!isLoggedIn && (
-            <Link
-              href="/contact"
-              className="hidden rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 md:inline-flex md:items-center"
-            >
-              Contact Us
-            </Link>
           )}
 
           {/* Mobile menu trigger */}
