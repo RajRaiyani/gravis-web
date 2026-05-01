@@ -42,6 +42,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { DeliveryChargesNotice } from "@/components/shared/delivery-charges-notice";
 
 interface CheckoutAddress {
   address: string;
@@ -99,7 +100,7 @@ const CHECKOUT_TERMS_SECTIONS: { title: string; body: string }[] = [
   },
   {
     title: "Shipping and Delivery",
-    body: "Delivery will be made to the shipping address provided. Please ensure the address is complete and accurate.",
+    body: "Delivery will be made to the shipping address provided. Please ensure the address is complete and accurate. Delivery charges are not included in the order total—you pay delivery charges when your order is delivered. Contact us by phone or email on our Contact page if you need a delivery charge estimate.",
   },
   {
     title: "Returns and Refunds",
@@ -868,9 +869,11 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">Subtotal ({itemCount} items)</span>
                   <span className="font-medium">{formatPrice(totalRupee)}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Shipping</span>
-                  <span className="font-medium text-primary">Free</span>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-muted-foreground">Delivery charges</span>
+                  <span className="shrink-0 text-right font-medium text-foreground">
+                    Not included
+                  </span>
                 </div>
                 <div className="flex items-center justify-between border-t border-border pt-3 text-base font-semibold">
                   <span>Total</span>
@@ -885,6 +888,8 @@ export default function CheckoutPage() {
                   </span>
                 </div>
               </div>
+
+              <DeliveryChargesNotice />
 
               <div className="space-y-2">
                 <Label htmlFor="promo_code">Promo Code (Optional)</Label>

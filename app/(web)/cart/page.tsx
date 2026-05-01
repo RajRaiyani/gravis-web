@@ -7,6 +7,7 @@ import { toast } from "react-hot-toast";
 import { useGetCart, useInvalidateCart } from "@/hooks/useCart";
 import { updateCartItem, type CartItem } from "@/services/api/cart.api";
 import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
+import { DeliveryChargesNotice } from "@/components/shared/delivery-charges-notice";
 
 function formatPrice(rupee: number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -238,6 +239,7 @@ export default function CartPage() {
                   >
                     Proceed to checkout
                   </Link>
+                  <DeliveryChargesNotice compact />
                 </div>
               </aside>
             </div>
