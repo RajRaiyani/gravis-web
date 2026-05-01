@@ -22,7 +22,7 @@ const socialLinks = [
 ];
 
 const contact = {
-  phone: "+91 7567156751",
+  phone: "+91 9979993848",
   email: "contact@gravisindia.com",
 };
 
